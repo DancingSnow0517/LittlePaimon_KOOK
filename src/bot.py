@@ -7,6 +7,7 @@ from . import panels
 from .api.panel import registered_panel, ClickablePanel
 from .utils.config import config
 from .utils.message_util import update_message, update_private_message
+from .utils import database
 
 
 class LittlePaimon(Bot):
@@ -20,6 +21,7 @@ def main():
 
     @bot.on_startup
     async def onstart_up(_: LittlePaimon):
+        database.init()
         for i in inspect.getmembers(
                 panels,
                 lambda x: issubclass(x, ClickablePanel) if inspect.isclass(x) and x != ClickablePanel else False
