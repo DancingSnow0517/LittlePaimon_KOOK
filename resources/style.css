@@ -37,3 +37,10 @@ summary {
     border-radius: 10px;
     background-color: rgba(255, 255, 255, 0.5);
 }
+
+.input-container input {
+    border-width: 2px;
+    border-color: skyblue;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+}

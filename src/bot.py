@@ -1,7 +1,11 @@
+import importlib
 import inspect
 import logging
+import os
 import re
+from pathlib import Path
 from threading import Thread
+from typing import List
 
 from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
@@ -35,6 +39,9 @@ class LittlePaimon(Bot):
     def __init__(self):
         super().__init__(config.token)
 
+    def my_command(self, name: str = '', *, aliases: List[str] = (), rules=()):
+        return self.command(name, prefixes=['!!', '！！'], aliases=list(aliases), rules=list(rules))
+
 
 def main():
     bot = LittlePaimon()
@@ -42,15 +49,30 @@ def main():
     webapp_thread = WebappThread()
 
     @bot.on_startup
-    async def onstart_up(_: LittlePaimon):
+    async def on_startup(_: LittlePaimon):
         if config.enable_web_app:
             webapp_thread.start()
-        database.init()
+        await database.init()
+        print(await database.get_cookies())
+        await database.add_cookie('123123', '123123', '123123')
+        await database.remove_cookies(uid='123123')
         for i in inspect.getmembers(
                 panels,
                 lambda x: issubclass(x, ClickablePanel) if inspect.isclass(x) and x != ClickablePanel else False
         ):
             i[1]().registry()
+
+    @bot.on_startup
+    async def load_plugins(_: LittlePaimon):
+        log.info('正在加载插插件。。。')
+        modules = get_plugins('src/plugins')
+
+        for module in modules:
+            module = importlib.import_module(module, 'src.plugins')
+            func = getattr(module, 'on_startup')
+            await func(bot)
+
+        log.info('插件加载完成。共 %d 个', len(modules))
 
     @bot.command(name='test')
     async def test(msg: Message):
@@ -81,3 +103,12 @@ def main():
 
     bot.run()
     webapp_thread.stop()
+
+
+def get_plugins(package='.') -> List[str]:
+    modules = []
+    for file in os.listdir(package):
+        if not file.startswith('__'):
+            name, ext = os.path.splitext(file)
+            modules.append("." + name)
+    return modules
