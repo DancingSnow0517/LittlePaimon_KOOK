@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from khl import Message
 from khl_card import CardMessage, Card
-from khl_card.modules import Section, Context
+from khl_card.modules import Section, Context, Paragraph
 from khl_card.accessory import Kmarkdown, Button, PlainText
 
 from ..utils import requests, database
@@ -49,4 +49,24 @@ async def on_startup(bot: 'LittlePaimon'):
                 ret_msg = '这个cookie**无效**，请确认是否正确\n请重新获取cookie后**刷新**本页面再次绑定'
             await msg.reply(text_avatar(ret_msg, msg.author).build())
 
-    ...
+    @bot.my_command('ysbc', aliases=['查询ck', '查询绑定', '绑定信息', '校验绑定'])
+    async def ysbc(msg: Message):
+        cookies = await database.get_cookies(user_id=msg.author.id)
+        if len(cookies) != 0:
+            l1 = '**序号**'
+            l2 = '**UID**'
+            l3 = '**状态**'
+            for ck in cookies:
+                l1 += f'\n{cookies.index(ck) + 1}'
+                l2 += f'\n{ck.uid}'
+                if await get_bind_game_info(ck.cookie):
+                    l3 += '\n有效'
+                else:
+                    l3 += '\n已失效'
+            card = Card(
+                Section(Kmarkdown(f'**{msg.author.nickname}** 的绑定情况：')),
+                Section(Paragraph(3, [Kmarkdown(l1), Kmarkdown(l2), Kmarkdown(l3)]))
+            )
+            await msg.reply([card.build()])
+        else:
+            await msg.reply(text_avatar('当前无绑定信息', msg.author).build())

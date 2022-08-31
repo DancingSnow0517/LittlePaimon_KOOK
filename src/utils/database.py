@@ -64,7 +64,7 @@ async def get_cookies(*, guild_id: str = None, user_id: str = None, uid: str = N
         str_list.append(f"cookie='{cookie}'")
 
     async with aiosqlite.connect('little_paimon.db') as db:
-        cur = await db.execute(f'SELECT * FROM cookie {"WHERE" if len(str_list) != 0 else "" + " AND ".join(str_list)}')
+        cur = await db.execute(f'SELECT * FROM cookie {("WHERE " if len(str_list) != 0 else "") + " AND ".join(str_list)}')
         data = await cur.fetchall()
     return [CookieInfo(*info) for info in data]
 
