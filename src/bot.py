@@ -1,13 +1,33 @@
 import inspect
+import logging
 import re
+from threading import Thread
 
+from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
 
 from . import panels
 from .api.panel import registered_panel, ClickablePanel
+from .utils import database
 from .utils.config import config
 from .utils.message_util import update_message, update_private_message
-from .utils import database
+from .webapp import app
+
+log = logging.getLogger(__name__)
+
+
+class WebappThread(Thread):
+    server: pywsgi.WSGIServer = None
+
+    def run(self) -> None:
+        super().run()
+        log.info('正在启动web服务...')
+        self.server = pywsgi.WSGIServer((config.web_app_address, config.web_app_port), app, log=None)
+        self.server.serve_forever()
+
+    def stop(self):
+        if self.server:
+            self.server.stop()
 
 
 class LittlePaimon(Bot):
@@ -19,8 +39,12 @@ class LittlePaimon(Bot):
 def main():
     bot = LittlePaimon()
 
+    webapp_thread = WebappThread()
+
     @bot.on_startup
     async def onstart_up(_: LittlePaimon):
+        if config.enable_web_app:
+            webapp_thread.start()
         database.init()
         for i in inspect.getmembers(
                 panels,
@@ -56,3 +80,4 @@ def main():
                                                  bot.client.gate)
 
     bot.run()
+    webapp_thread.stop()

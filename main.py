@@ -1,8 +1,9 @@
 from colorama import Fore
 
 from src.utils.logger import ColoredLogger, patch_getLogger
+from src.utils.config import config
 
-log = ColoredLogger('LittlePaimon')
+log = ColoredLogger('LittlePaimon', level=config.log_level)
 
 logo = """
 ██╗     ██╗████████╗████████╗██╗     ███████╗  ██████╗  █████╗ ██╗███╗   ███╗ ██████╗ ███╗   ██╗

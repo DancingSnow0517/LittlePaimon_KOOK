@@ -1,0 +1,39 @@
+body {
+    background: #000000 url(https://static.cherishmoon.fun/blog/h-wallpaper/zhounianqing.png) no-repeat;
+    background-size: cover;
+}
+
+#input-container {
+    background: rgba(0, 0, 0, 0);
+}
+
+summary {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.markdown-body {
+    padding: 25px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.85);
+}
+
+.markdown-body p {
+    font-weight: bold;
+}
+
+.markdown-body strong {
+    font-size: larger;
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.85);
+}
+
+.input-container textarea {
+    border-width: 2px;
+    border-color: skyblue;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+}

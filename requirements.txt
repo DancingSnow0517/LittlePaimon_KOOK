@@ -2,3 +2,6 @@ khl.py>=0.3.2
 colorlog>=6.6.0
 colorama>=0.4.5
 pydantic>=1.9.2
+gevent>=21.12.0
+Flask>=2.2.2
+pywebio>=1.6.2

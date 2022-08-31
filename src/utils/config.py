@@ -9,6 +9,9 @@ from pydantic import BaseModel
 class Config(BaseModel):
     token: str
     log_level: str = 'INFO'
+    enable_web_app: bool
+    web_app_port: int
+    web_app_address: str
 
     # noinspection PyTypeChecker
     @classmethod
