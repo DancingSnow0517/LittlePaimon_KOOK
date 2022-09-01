@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import random
 import re
 import string
@@ -18,6 +19,8 @@ GAME_RECORD_API = 'https://api-takumi-record.mihoyo.com/game_record/card/wapi/ge
 SIGN_INFO_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/info'
 SIGN_REWARD_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/home'
 SIGN_ACTION_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign'
+
+log = logging.getLogger(__name__)
 
 
 def md5(text: str) -> str:
@@ -142,3 +145,47 @@ async def get_bind_game_info(cookie: str) -> Optional[dict]:
                     game_data['mys_id'] = mys_id
                     return game_data
     return None
+
+
+async def get_sign_reward_list() -> dict:
+    headers = {
+        'x-rpc-app_version': '2.11.1',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 ('
+                      'KHTML, like Gecko) miHoYoBBS/2.11.1',
+        'x-rpc-client_type': '5',
+        'Referer': 'https://webstatic.mihoyo.com/'
+    }
+    resp = await requests.get(url=SIGN_REWARD_API, headers=headers, params={'act_id': 'e202009291139501'})
+    data = resp.json()
+    log.debug(data)
+    return data
+
+
+async def get_stoken_by_cookie(cookie: str) -> Optional[str]:
+    if login_ticket := re.search('login_ticket=([0-9a-zA-Z]+)', cookie):
+        bbs_cookie_url = 'https://webapi.account.mihoyo.com/Api/cookie_accountinfo_by_loginticket?login_ticket={}'
+        data = (await requests.get(url=bbs_cookie_url.format(login_ticket[0].split('=')[1]))).json()
+
+        if '成功' in data['data']['msg']:
+            stuid = data['data']['cookie_info']['account_id']
+            bbs_cookie_url2 = 'https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={}&token_types=3&uid={}'
+            data2 = (await requests.get(url=bbs_cookie_url2.format(login_ticket[0].split('=')[1], stuid))).json()
+            return data2['data']['list'][0]['token']
+        else:
+            return None
+    return None
+
+
+async def get_enka_data(uid):
+    try:
+        url = f'https://enka.network/u/{uid}/__data.json'
+        resp = await requests.get(url=url, headers={'User-Agent': 'LittlePaimon/3.0'}, follow_redirects=True)
+        data = resp.json()
+        log.debug(data)
+        return data
+    except Exception:
+        url = f'https://enka.microgg.cn/u/{uid}/__data.json'
+        resp = await requests.get(url=url, headers={'User-Agent': 'LittlePaimon/3.0'}, follow_redirects=True)
+        data = resp.json()
+        log.debug(data)
+        return data

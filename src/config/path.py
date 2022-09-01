@@ -34,3 +34,11 @@ FONTS_PATH = Path() / 'resources' / 'fonts'
 FONTS_PATH.mkdir(parents=True, exist_ok=True)
 # JSON数据路径
 JSON_DATA = Path(__file__).parent / 'data'
+
+# 数据库路径
+DATABASE_PATH = Path() / 'data' / 'LittlePaimon' / 'database'
+DATABASE_PATH.mkdir(parents=True, exist_ok=True)
+
+GENSHIN_DB_PATH = DATABASE_PATH / 'genshin.db'
+GENSHIN_VOICE_DB_PATH = DATABASE_PATH / 'genshin_voice.db'
+

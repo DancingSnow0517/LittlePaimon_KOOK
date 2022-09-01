@@ -14,9 +14,11 @@ from khl import Bot, Event, EventTypes, Message, GuildUser, User
 
 from . import panels
 from .api.panel import registered_panel, ClickablePanel
-from .utils import database
+from .panels import MainPanel
+from .database import connect
 from .utils import requests
 from .utils.config import config
+from .utils.genshin import update_from_enka
 from .utils.message_util import update_message, update_private_message
 from .webapp import app
 
@@ -53,10 +55,10 @@ def main():
 
     @bot.on_startup
     async def on_startup(_: LittlePaimon):
+        await connect()
         await check_resource()
         if config.enable_web_app:
             webapp_thread.start()
-        await database.init()
         for i in inspect.getmembers(
                 panels,
                 lambda x: issubclass(x, ClickablePanel) if inspect.isclass(x) and x != ClickablePanel else False
@@ -81,9 +83,9 @@ def main():
 
         log.info('插件加载完成。共 %d 个', len(modules))
 
-    @bot.command(name='paimon_gacha')
-    async def test(msg: Message):
-        await msg.reply(panels.TestPanel.get_panel().build())
+    @bot.my_command('help', aliases=['帮助'])
+    async def help_panel(msg: Message):
+        await msg.ctx.channel.send(MainPanel.get_panel().build())
 
     @bot.on_event(EventTypes.MESSAGE_BTN_CLICK)
     async def on_button_click(_: LittlePaimon, event: Event):

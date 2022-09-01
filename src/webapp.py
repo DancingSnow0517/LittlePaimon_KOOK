@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from pathlib import Path
 
@@ -7,8 +8,8 @@ from pywebio.output import put_markdown, popup
 from pywebio.platform import config as cfg
 from pywebio.platform.flask import wsgi_app
 
-from .utils.genshin_api import get_bind_game_info
-from .utils import database
+from .database.models.cookie import LastQuery, PrivateCookie
+from .utils.genshin_api import get_bind_game_info, get_stoken_by_cookie
 
 log = logging.getLogger(__name__)
 css_path = Path() / 'resources' / 'style.css'
@@ -23,7 +24,8 @@ loop = asyncio.new_event_loop()
 def bind_cookie_page():
     put_markdown('**重要提醒**：Cookie的作用相当于账号密码，非常重要，如是非可信任的机器人，请勿绑定！！')
     put_markdown('**获取`Cookie`方法**：详见 [Cookie获取教程](https://docs.qq.com/doc/DQ3JLWk1vQVllZ2Z1)')
-    put_markdown('**获取`KOOK用户id`方法**：打开开发者模式 (`KOOK设置`->`高级设置`->`开发者模式`)，右键你的头像然后`复制ID`')
+    put_markdown(
+        '**获取`KOOK用户id`方法**：打开开发者模式 (`KOOK设置`->`高级设置`->`开发者模式`)，右键你的头像然后`复制ID`')
     put_markdown('也可以使用 `!!原神绑定` 命令来查看你的`用户id`')
     data = input_group('绑定Cookie', [
         input('KOOK 用户id', name='user_id', required=True, validate=is_user_id, placeholder='KOOK 用户id'),
@@ -56,9 +58,19 @@ async def bind_cookie(data: dict):
         game_name = result['nickname']
         game_uid = result['game_role_id']
         mys_id = result['mys_id']
-        if await database.add_cookie(user_id, game_uid, cookie):
-            return f'`cookie` 绑定成功！\n**{game_name}** - **{game_uid}**'
-        return f'`cookie` 绑定失败！\n 可能这个 `cookie` 的 UID 已经绑定了'
+        await LastQuery.update_or_create(user_id=str(data['qq']),
+                                         defaults={'uid': game_uid, 'last_time': datetime.datetime.now()})
+        log.info(f'用户 {user_id} 成功绑定cookie')
+        if 'login_ticket' in cookie and (stoken := await get_stoken_by_cookie(cookie)):
+            await PrivateCookie.update_or_create(user_id=str(data['qq']), uid=game_uid, mys_id=mys_id,
+                                                 defaults={'cookie': data['cookie'],
+                                                           'stoken': f'stuid={mys_id};stoken={stoken};'})
+            return f'`{user_id}` 成功绑定原神 **{game_name}** -UID **{game_uid}**'
+        else:
+            await PrivateCookie.update_or_create(user_id=str(data['qq']), uid=game_uid, mys_id=mys_id,
+                                                 defaults={'cookie': data['cookie']})
+            return f'`{user_id}` 成功绑定原神 **{game_name}** -UID **{game_uid}**\n' \
+                   f'但cookie中没有`login_ticket`或`login_ticket`无效，`米游币相关功能`无法使用'
     else:
         return '这个`cookie` **无效** ，请确认是否正确\n请重新获取`cookie`后 **刷新** 本页面再次绑定'
 
