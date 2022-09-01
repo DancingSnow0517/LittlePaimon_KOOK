@@ -57,10 +57,10 @@ async def bind_cookie(data: dict):
         game_uid = result['game_role_id']
         mys_id = result['mys_id']
         if await database.add_cookie(user_id, game_uid, cookie):
-            return f'cookie 绑定成功！\n{game_name} - {game_uid}'
-        return f'cookie 绑定失败！\n 可能这个 cookie 的 UID 已经绑定了'
+            return f'`cookie` 绑定成功！\n**{game_name}** - **{game_uid}**'
+        return f'`cookie` 绑定失败！\n 可能这个 `cookie` 的 UID 已经绑定了'
     else:
-        return '这个cookie**无效**，请确认是否正确\n请重新获取cookie后**刷新**本页面再次绑定'
+        return '这个`cookie` **无效** ，请确认是否正确\n请重新获取`cookie`后 **刷新** 本页面再次绑定'
 
 
 app = wsgi_app(bind_cookie_page)

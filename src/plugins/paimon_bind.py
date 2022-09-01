@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from khl import Message
+from khl.command.exception import Exceptions
 from khl_card import CardMessage, Card
 from khl_card.modules import Section, Context, Paragraph
 from khl_card.accessory import Kmarkdown, Button, PlainText
@@ -8,7 +9,7 @@ from khl_card.accessory import Kmarkdown, Button, PlainText
 from ..utils import requests, database
 from ..utils.config import config
 from ..utils.genshin_api import get_bind_game_info
-from ..utils.message_utils import text_avatar
+from ..utils.message_util import text_avatar, on_exception
 
 if TYPE_CHECKING:
     from ..bot import LittlePaimon
@@ -70,3 +71,5 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply([card.build()])
         else:
             await msg.reply(text_avatar('当前无绑定信息', msg.author).build())
+
+    ysbc.on_exception(Exceptions.Handler.ArgLenNotMatched)(on_exception())

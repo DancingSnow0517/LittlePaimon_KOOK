@@ -3,12 +3,12 @@ import inspect
 import logging
 import os
 import re
-from pathlib import Path
 from threading import Thread
 from typing import List
 
 from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
+from khl.command import Command
 
 from . import panels
 from .api.panel import registered_panel, ClickablePanel
@@ -53,9 +53,6 @@ def main():
         if config.enable_web_app:
             webapp_thread.start()
         await database.init()
-        print(await database.get_cookies())
-        await database.add_cookie('123123', '123123', '123123')
-        await database.remove_cookies(uid='123123')
         for i in inspect.getmembers(
                 panels,
                 lambda x: issubclass(x, ClickablePanel) if inspect.isclass(x) and x != ClickablePanel else False

@@ -1,7 +1,7 @@
 from colorama import Fore
 
-from src.utils.logger import ColoredLogger, patch_getLogger
 from src.utils.config import config
+from src.utils.logger import ColoredLogger, patch_getLogger
 
 log = ColoredLogger('LittlePaimon', level=config.log_level)
 
