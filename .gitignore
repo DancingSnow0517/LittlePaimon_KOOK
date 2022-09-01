@@ -133,3 +133,6 @@ dmypy.json
 /config.json
 /resources/LittlePaimon/
 /resources/fonts/
+/Temp/
+/little_paimon.db
+/data/
