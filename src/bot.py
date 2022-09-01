@@ -1,18 +1,21 @@
+import asyncio
+import hashlib
 import importlib
 import inspect
 import logging
 import os
 import re
+from pathlib import Path
 from threading import Thread
 from typing import List
 
 from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
-from khl.command import Command
 
 from . import panels
 from .api.panel import registered_panel, ClickablePanel
 from .utils import database
+from .utils import requests
 from .utils.config import config
 from .utils.message_util import update_message, update_private_message
 from .webapp import app
@@ -50,6 +53,7 @@ def main():
 
     @bot.on_startup
     async def on_startup(_: LittlePaimon):
+        await check_resource()
         if config.enable_web_app:
             webapp_thread.start()
         await database.init()
@@ -58,6 +62,12 @@ def main():
                 lambda x: issubclass(x, ClickablePanel) if inspect.isclass(x) and x != ClickablePanel else False
         ):
             i[1]().registry()
+
+        if os.path.exists('Temp'):
+            if not os.path.isdir('Temp'):
+                log.error('Temp 不是个文件夹')
+        else:
+            os.mkdir('Temp')
 
     @bot.on_startup
     async def load_plugins(_: LittlePaimon):
@@ -71,7 +81,7 @@ def main():
 
         log.info('插件加载完成。共 %d 个', len(modules))
 
-    @bot.command(name='test')
+    @bot.command(name='paimon_gacha')
     async def test(msg: Message):
         await msg.reply(panels.TestPanel.get_panel().build())
 
@@ -109,3 +119,22 @@ def get_plugins(package='.') -> List[str]:
             name, ext = os.path.splitext(file)
             modules.append("." + name)
     return modules
+
+
+async def check_resource():
+    res_path = Path() / 'resources' / 'LittlePaimon'
+    log.info('正在检查资源完整性...')
+    resource_list = (await requests.get('http://img.genshin.cherishmoon.fun/resources/resources_list')).json()
+    for resource in resource_list:
+        file_path = res_path.parent / resource['path']
+        if file_path.exists():
+            if not resource['lock'] or hashlib.md5(file_path.read_bytes()).hexdigest() == resource['hash']:
+                continue
+            else:
+                file_path.unlink()
+        try:
+            await requests.download(f'http://img.genshin.cherishmoon.fun/resources/{resource["path"]}', file_path)
+            await asyncio.sleep(0.5)
+        except Exception as e:
+            log.warning(f'下载 {resource["path"].split("/")[-1]} 失败')
+    log.info('资源检查完成')

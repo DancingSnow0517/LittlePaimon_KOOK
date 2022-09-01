@@ -73,3 +73,10 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply(text_avatar('当前无绑定信息', msg.author).build())
 
     ysbc.on_exception(Exceptions.Handler.ArgLenNotMatched)(on_exception())
+
+    @bot.my_command('delete_ck', aliases=['删除cookie'])
+    async def delete_ck(msg: Message):
+        count = await database.remove_cookies(user_id=msg.author.id)
+        await msg.reply(f'成功删除了 **{count}** 个 cookie')
+
+    delete_ck.on_exception(Exceptions.Handler.ArgLenNotMatched)(on_exception())

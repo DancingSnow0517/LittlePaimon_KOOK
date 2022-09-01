@@ -10,7 +10,7 @@ class MainPanel(ClickablePanel):
         return CardMessage(
             Card(
                 ActionGroup(
-                    Button(PlainText('test'))
+                    Button(PlainText('paimon_gacha'))
                 )
             )
         )
