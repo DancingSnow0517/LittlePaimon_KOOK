@@ -24,6 +24,23 @@ class MainPanel(ClickablePanel):
         return "主菜单"
 
 
+class GachaPanel(ClickablePanel):
+
+    @staticmethod
+    def name() -> str:
+        return '抽卡'
+
+    @staticmethod
+    def get_panel() -> CardMessage:
+        return CardMessage(Card(
+
+        ))
+
+    @staticmethod
+    def panel_id() -> str:
+        return 'gacha_panel'
+
+
 class TestPanel(ClickablePanel):
     @staticmethod
     def get_panel() -> CardMessage:
