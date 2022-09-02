@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from khl import Message
 from khl.command.exception import Exceptions
 from khl_card import CardMessage, Card
-from khl_card.modules import Section, Context, Paragraph
-from khl_card.accessory import Kmarkdown, Button, PlainText
+from khl_card.modules import Section, Context
+from khl_card.accessory import Kmarkdown, Button, PlainText, Paragraph
 
 from ..database.models.cookie import LastQuery, PrivateCookie
 from ..utils import requests
@@ -64,7 +64,7 @@ async def on_startup(bot: 'LittlePaimon'):
 
     @bot.my_command('ysbc', aliases=['查询ck', '查询绑定', '绑定信息', '校验绑定'])
     async def ysbc(msg: Message):
-        log.info(f'开始校验{msg.author.id}的绑定情况')
+        log.info(f'开始校验 {msg.author.id} 的绑定情况')
         ck = await PrivateCookie.filter(user_id=msg.author.id)
         uid = await LastQuery.get_or_none(user_id=msg.author.id)
         if ck:
