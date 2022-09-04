@@ -1,6 +1,12 @@
 import json
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional, Tuple, Dict
+
+from PIL import Image
+
+from . import requests
+
+cache_image: Dict[str, any] = {}
 
 
 def load_json(path: Union[Path, str], encoding: str = 'utf-8'):
@@ -26,3 +32,53 @@ def save_json(data: dict, path: Union[Path, str] = None, encoding: str = 'utf-8'
         path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     json.dump(data, path.open('w', encoding=encoding), ensure_ascii=False, indent=4)
+
+
+async def load_image(
+        path: Union[Path, str],
+        *,
+        size: Optional[Union[Tuple[int, int], float]] = None,
+        crop: Optional[Tuple[int, int, int, int]] = None,
+        mode: Optional[str] = None,
+) -> Image.Image:
+    """
+    说明：
+        读取图像，并预处理
+    参数：
+        :param path: 图片路径
+        :param size: 预处理尺寸
+        :param crop: 预处理裁剪大小
+        :param mode: 预处理图像模式
+        :return: 图像对象
+    """
+    if str(path) in cache_image:
+        img = cache_image[str(path)]
+    else:
+        if path.exists():
+            img = Image.open(path)
+        elif path.name.startswith(('UI_', 'Skill_')):
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                              'Chrome/104.0.0.0 Safari/537.36'}
+            try:
+                img = await requests.get_img(f'https://enka.network/ui/{path.name}', headers=headers, save_path=path,
+                                             follow_redirects=True)
+            except Exception as e:
+                raise FileNotFoundError(f'{path} not found') from e
+        else:
+            try:
+                p = path.__str__().replace('\\', '/')
+                img = await requests.get_img(f'http://img.genshin.cherishmoon.fun/{p}', save_path=path)
+            except Exception as e:
+                raise FileNotFoundError(f'{path} not found') from e
+        cache_image[str(path)] = img
+    if mode:
+        img = img.convert(mode)
+    if size:
+        if isinstance(size, float):
+            img = img.resize((int(img.size[0] * size), int(img.size[1] * size)), Image.ANTIALIAS)
+        elif isinstance(size, tuple):
+            img = img.resize(size, Image.ANTIALIAS)
+    if crop:
+        img = img.crop(crop)
+    return img

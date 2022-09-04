@@ -11,3 +11,4 @@ tqdm>=4.64.0
 KaiheilaCardBuilder>=1.2.5
 numpy~=1.23.2
 tortoise-orm>=0.19.2
+pytz>=2022.2.1

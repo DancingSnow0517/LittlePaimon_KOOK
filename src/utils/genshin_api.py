@@ -5,9 +5,12 @@ import random
 import re
 import string
 import time
-from typing import Optional
+from typing import Optional, Literal
+
+from tortoise.expressions import Q
 
 from . import requests
+from ..database.models.cookie import PrivateCookie, CookieCache, PublicCookie
 
 ABYSS_API = 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/spiralAbyss'
 PLAYER_CARD_API = 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index'
@@ -129,6 +132,69 @@ def mihoyo_sign_headers(cookie: str) -> dict:
     }
 
 
+async def check_retcode(data: dict, cookie_info, cookie_type: str, user_id: str, uid: str) -> bool:
+    """
+    检查数据响应状态冰进行响应处理
+    :param data: 数据
+    :param cookie_info: cookie信息
+    :param cookie_type: cookie类型
+    :param user_id: 用户id
+    :param uid: 原神uid
+    :return: 数据是否有效
+    """
+    if not data:
+        return False
+    if data['retcode'] in [10001, -100]:
+        if cookie_type == 'private':
+            if cookie_info.status == 1:
+                cookie_info.status = 0
+                await cookie_info.save()
+                log.info(f'原神Cookie: 用户 {user_id} 的私人cookie {uid} 疑似失效')
+            elif cookie_info.status == 0:
+                await cookie_info.delete()
+                log.info(f'原神Cookie: 用户 {user_id} 的私人cookie {uid} 连续失效， 已删除')
+        else:
+            await CookieCache.filter(cookie=cookie_info.cookie).delete()
+            await cookie_info.delete()
+            log.info(f'原神Cookie: {cookie_info.id} 号公共cookie已失效，已删除')
+        return False
+    elif data['retcode'] == 10101:
+        cookie_info.status = 2
+        await cookie_info.save()
+        if cookie_info == 'private':
+            log.info(f'原神Cookie: 用户 {user_id} 的私人cookie {uid} 已达到每日30次查询上限')
+        else:
+            log.info(f'原神Cookie: {cookie_info["cid"]} 号公共cookie已达到每日30次查询上限')
+        return False
+    else:
+        if cookie_type == 'public':
+            await CookieCache.update_or_create(uid=uid, defaults={'cookie': cookie_info.cookie})
+        return True
+
+
+async def get_cookie(user_id: str, uid: str, check: bool = True, own: bool = False):
+    """
+    获取可用的cookie
+    :param user_id: 用户id
+    :param uid: 原神uid
+    :param check: 是否获取疑似失效的cookie
+    :param own: 是否只获取和uid对应的cookie
+    :return:
+    """
+    query = Q(status=1) | Q(status=0) if check else Q(status=1)
+    if private_cookie := await PrivateCookie.filter(Q(Q(query) & Q(user_id=user_id) & Q(uid=uid))).first():
+        return private_cookie, 'private'
+    elif not own:
+        if cache_cookie := await CookieCache.get_or_none(uid=uid):
+            return cache_cookie, 'cache'
+        elif private_cookie := await PrivateCookie.filter(Q(Q(query) & Q(user_id=user_id))).first():
+            return private_cookie, 'private'
+        else:
+            return await PublicCookie.filter(Q(query)).first(), 'public'
+    else:
+        return None, ''
+
+
 async def get_bind_game_info(cookie: str) -> Optional[dict]:
     """
     通过cookie，获取米游社绑定的原神游戏信息
@@ -145,6 +211,100 @@ async def get_bind_game_info(cookie: str) -> Optional[dict]:
                     game_data['mys_id'] = mys_id
                     return game_data
     return None
+
+
+async def get_mihoyo_public_data(
+        uid: str,
+        user_id: Optional[str],
+        mode: Literal['abyss', 'player_card', 'role_detail'],
+        schedule_type: Optional[str] = '1'):
+    server_id = "cn_qd01" if uid[0] == '5' else "cn_gf01"
+    check = True
+    while True:
+        cookie_info, cookie_type = await get_cookie(user_id, uid, check)
+        check = False
+        if not cookie_info:
+            return '当前没有可使用的cookie，请绑定私人cookie或联系超级管理员添加公共cookie，'
+        if mode == 'abyss':
+            data = await requests.get(url=ABYSS_API, headers=mihoyo_headers(
+                q=f'role_id={uid}&schedule_type={schedule_type}&server={server_id}', cookie=cookie_info.cookie),
+                                      params={"schedule_type": schedule_type, "role_id": uid, "server": server_id})
+        elif mode == 'player_card':
+            data = await requests.get(url=PLAYER_CARD_API, headers=mihoyo_headers(q=f'role_id={uid}&server={server_id}',
+                                                                                  cookie=cookie_info.cookie),
+                                      params={'server': server_id, 'role_id': uid})
+        elif mode == 'role_detail':
+            json_data = {
+                "server": server_id,
+                "role_id": uid,
+                "character_ids": []
+            }
+            data = await requests.post(url=CHARACTER_DETAIL_API,
+                                       headers=mihoyo_headers(b=json_data, cookie=cookie_info.cookie), json=json_data)
+        else:
+            data = None
+        data = data.json() if data else {'retcode': 999}
+        log.debug(data)
+        if await check_retcode(data, cookie_info, cookie_type, user_id, uid):
+            return data
+
+
+async def get_mihoyo_private_data(
+        uid: str,
+        user_id: Optional[str],
+        mode: Literal['role_skill', 'month_info', 'daily_note', 'sign_info', 'sign_action'],
+        role_id: Optional[str] = None,
+        month: Optional[str] = None):
+    server_id = "cn_qd01" if uid[0] == '5' else "cn_gf01"
+    cookie_info, _ = await get_cookie(user_id, uid, True, True)
+    if not cookie_info:
+        return '未绑定私人cookie，获取cookie的教程：\ndocs.qq.com/doc/DQ3JLWk1vQVllZ2Z1\n获取后，使用[ysb cookie]指令绑定'
+    if mode == 'role_skill':
+        data = await requests.get(url=CHARACTER_SKILL_API,
+                                  headers=mihoyo_headers(q=f'uid={uid}&region={server_id}&avatar_id={role_id}',
+                                                         cookie=cookie_info.cookie),
+                                  params={"region": server_id, "uid": uid, "avatar_id": role_id})
+    elif mode == 'month_info':
+        data = await requests.get(url=MONTH_INFO_API,
+                                  headers=mihoyo_headers(q=f'month={month}&bind_uid={uid}&bind_region={server_id}',
+                                                         cookie=cookie_info.cookie),
+                                  params={"month": month, "bind_uid": uid, "bind_region": server_id})
+    elif mode == 'daily_note':
+        data = await requests.get(url=DAILY_NOTE_API, headers=mihoyo_headers(q=f'role_id={uid}&server={server_id}',
+                                                                             cookie=cookie_info.cookie),
+                                  params={"server": server_id, "role_id": uid})
+    elif mode == 'sign_info':
+        data = await requests.get(url=SIGN_INFO_API,
+                                  headers={
+                                      'x-rpc-app_version': '2.11.1',
+                                      'x-rpc-client_type': '5',
+                                      'Origin': 'https://webstatic.mihoyo.com',
+                                      'Referer': 'https://webstatic.mihoyo.com/',
+                                      'Cookie': cookie_info.cookie,
+                                      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS '
+                                                    'X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1',
+                                  },
+                                  params={
+                                      'act_id': 'e202009291139501',
+                                      'region': server_id,
+                                      'uid': uid
+                                  })
+    elif mode == 'sign_action':
+        data = await requests.post(url=SIGN_ACTION_API,
+                                   headers=mihoyo_sign_headers(cookie_info.cookie),
+                                   json={
+                                       'act_id': 'e202009291139501',
+                                       'uid': uid,
+                                       'region': server_id
+                                   })
+    else:
+        data = None
+    data = data.json() if data else {'retcode': 999}
+    log.debug(data)
+    if await check_retcode(data, cookie_info, 'private', user_id, uid):
+        return data
+    else:
+        return f'你的UID{uid}的cookie疑似失效了'
 
 
 async def get_sign_reward_list() -> dict:

@@ -14,11 +14,10 @@ from khl import Bot, Event, EventTypes, Message, GuildUser, User
 
 from . import panels
 from .api.panel import registered_panel, ClickablePanel
-from .panels import MainPanel
 from .database import connect
+from .panels import MainPanel
 from .utils import requests
 from .utils.config import config
-from .utils.genshin import update_from_enka
 from .utils.message_util import update_message, update_private_message
 from .webapp import app
 
