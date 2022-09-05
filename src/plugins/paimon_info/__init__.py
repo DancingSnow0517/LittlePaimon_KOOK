@@ -1,15 +1,24 @@
 import logging
+import random
 import traceback
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, List
 
 from khl import Message, MessageTypes
+from khl_card import Card, ThemeTypes
+from khl_card.modules import Container
+from khl_card.accessory import Image
 
 from .draw_abyss_card import draw_abyss_card
 from .draw_character_bag import draw_chara_bag
+from .draw_character_card import draw_chara_card
+from .draw_character_detail import draw_chara_detail
 from .draw_player_card import draw_player_card
 from ...database.models.cookie import PrivateCookie
 from ...database.models.player_info import Player
+from ...utils import requests
+from ...utils.alias import get_match_alias
 from ...utils.genshin import GenshinInfoManager
+from ...utils.types import MALE_CHARACTERS, BOY_CHARACTERS, GIRL_CHARACTERS, LOLI_CHARACTERS, FEMALE_CHARACTERS
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
@@ -135,3 +144,132 @@ async def on_startup(bot: 'LittlePaimon'):
                 except Exception as e:
                     traceback.print_exc()
                     log.error(f'原神深渊战报: ➤➤➤ 制图出错: {e}')
+
+    @bot.my_command('ysc', aliases=['角色图'])
+    async def ysc(msg: Message, *characters: str):
+        log.info('原神角色卡片: 开始执行')
+        chars = get_characters(characters)
+        if not chars:
+            await msg.reply(f'没有找到叫 {characters} 的角色')
+            return
+        cookies = await PrivateCookie.filter(user_id=msg.author.id)
+        if len(cookies) == 0:
+            await msg.reply('你还没有绑定 cookie')
+            return
+        urls = []
+        if len(cookies) == 1:
+            # 当查询对象只有一个时，查询所有角色
+            gim = GenshinInfoManager(cookies[0].user_id, cookies[0].uid)
+            await gim.set_last_query()
+            log.info(f'原神角色卡片: ➤用户: {cookies[0].user_id}, UID: {cookies[0].uid}')
+            for char in chars:
+                char_info = await gim.get_character(name=char)
+                if char_info is None:
+                    log.info(f'原神角色卡片: ➤➤ 角色: {char} 没有该角色信息，发送随机图')
+                    (await requests.get_img(f'http://img.genshin.cherishmoon.fun/{char}')).save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                else:
+                    img = await draw_chara_card(char_info)
+                    img.save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                    log.info(f'原神角色卡片: ➤➤ 角色: {char} 制图完成')
+        else:
+            # 当查询对象有多个时，只查询第一个角色
+            for ck in cookies:
+                gim = GenshinInfoManager(ck.user_id, ck.uid)
+                await gim.set_last_query()
+                log.info(f'原神角色卡片: ➤用户: {ck.user_id}, UID: {ck.uid}')
+                char_info = await gim.get_character(name=chars[0])
+                if char_info is None:
+                    log.info(f'原神角色卡片: ➤➤ 角色: {chars[0]} 没有该角色信息，发送随机图')
+                    (await requests.get_img(f'http://img.genshin.cherishmoon.fun/{chars[0]}')).save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                else:
+                    img = await draw_chara_card(char_info)
+                    img.save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                    log.info(f'原神角色卡片: ➤➤ 角色: {chars[0]} 制图完成')
+
+        if urls:
+            card = Card(
+                Container(
+                    *[Image(url) for url in urls]
+                ),
+                theme=ThemeTypes.NONE
+            )
+            await msg.reply([card.build()])
+
+    @bot.my_command('ysd', aliases=['角色详情', '角色信息', '角色面板'])
+    async def ysd(msg: Message, *characters: str):
+        log.info('原神角色面板: 开始执行')
+        chars = get_characters(characters)
+        if not chars:
+            await msg.reply(f'没有找到叫 {characters} 的角色')
+            return
+        cookies = await PrivateCookie.filter(user_id=msg.author.id)
+        if len(cookies) == 0:
+            await msg.reply('你还没有绑定 cookie')
+            return
+        urls = []
+        if len(cookies) == 1:
+            # 当查询对象只有一个时，查询所有角色
+            gim = GenshinInfoManager(cookies[0].user_id, cookies[0].uid)
+            await gim.set_last_query()
+            log.info(f'原神角色面板: ➤用户: {cookies[0].user_id}, UID: {cookies[0].uid}')
+            for char in chars:
+                char_info = await gim.get_character(name=char, data_source='enka')
+                if not char_info:
+                    log.error(f'原神角色面板: ➤➤ 角色: {char} 没有该角色信息')
+                    await msg.ctx.channel.send(f'暂无你 {char} 信息，请在游戏内展柜放置该角色')
+                else:
+                    img = await draw_chara_detail(cookies[0].uid, char_info)
+                    img.save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                    log.info(f'原神角色面板: ➤➤➤ 制图完成')
+        else:
+            # 当查询对象有多个时，只查询第一个角色
+            for ck in cookies:
+                gim = GenshinInfoManager(ck.user_id, ck.uid)
+                await gim.set_last_query()
+                log.info(f'原神角色面板: ➤用户: {ck.user_id}, UID: {ck.uid}')
+                char_info = await gim.get_character(name=chars[0])
+                if not char_info:
+                    await msg.ctx.channel.send(f'暂无你 {chars[0]} 信息，请在游戏内展柜放置该角色')
+                    return
+                else:
+                    img = await draw_chara_detail(ck.uid, char_info)
+                    img.save('Temp/ysc.png')
+                    urls.append(await bot.client.create_asset('Temp/ysc.png'))
+                    log.info(f'原神角色面板: ➤➤➤ 制图完成')
+        if urls:
+            card = Card(
+                Container(
+                    *[Image(url) for url in urls]
+                ),
+                theme=ThemeTypes.NONE
+            )
+            await msg.reply([card.build()])
+
+
+def get_characters(characters: Tuple[str], limit: int = 3) -> List[str]:
+    ret = []
+    for char in characters:
+        if char in ['老婆', '老公', '女儿', '儿子', '爸爸', '妈妈']:
+            if char == '老公':
+                ret.append(random.choice(MALE_CHARACTERS + BOY_CHARACTERS))
+            elif char == '老婆':
+                ret.append(random.choice(FEMALE_CHARACTERS + GIRL_CHARACTERS))
+            elif char == '女儿':
+                ret.append(random.choice(GIRL_CHARACTERS + LOLI_CHARACTERS))
+            elif char == '儿子':
+                ret.append(random.choice(BOY_CHARACTERS))
+            elif char == '爸爸':
+                ret.append(random.choice(MALE_CHARACTERS))
+            elif char == '妈妈':
+                ret.append(random.choice(FEMALE_CHARACTERS))
+        elif character_match := get_match_alias(char, '角色', True):
+            ret.append(list(character_match.keys())[0])
+        if len(ret) > limit:
+            return ret[:limit]
+        else:
+            return ret
