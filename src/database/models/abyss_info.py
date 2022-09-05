@@ -4,6 +4,7 @@ from typing import Optional, Union, List, Iterator, Dict
 from pydantic import BaseModel
 from tortoise import fields, Model
 
+from .player_info import PlayerInfo
 from ...utils.alias import get_name_by_id
 
 

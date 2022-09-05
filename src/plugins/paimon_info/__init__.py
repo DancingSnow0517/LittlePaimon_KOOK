@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from khl import Message, MessageTypes
 
+from .draw_abyss_card import draw_abyss_card
 from .draw_character_bag import draw_chara_bag
 from .draw_player_card import draw_player_card
 from ...database.models.cookie import PrivateCookie
@@ -97,3 +98,40 @@ async def on_startup(bot: 'LittlePaimon'):
                 except Exception as e:
                     traceback.print_exc()
                     log.error(f'原神角色背包: ➤➤➤ 制图出错: {e}')
+
+    @bot.my_command('sy', aliases=['深渊战报', '深渊信息'])
+    async def sy(msg: Message, abyss_index: int = 1, uid: str = None):
+        log.info('原神深渊战报: 开始执行')
+        abyss_index = abyss_index if abyss_index == 1 or abyss_index == 2 else 1
+        if uid is None:
+            cookies = await PrivateCookie.filter(user_id=msg.author.id)
+            if len(cookies) == 0:
+                await msg.reply('你还没有绑定 cookie')
+                return
+        else:
+            cookies = await PrivateCookie.filter(uid=uid)
+            if len(cookies) == 0:
+                await msg.reply(f'数据库没有查询到 uid 的信息')
+                return
+            for ck in cookies:
+                if ck.user_id != msg.author.id:
+                    await msg.reply(f'UID: {ck.uid} 不属于你')
+                    cookies.remove(ck)
+        for ck in cookies:
+            log.info(f'原神深渊战报: ➤用户: {ck.user_id}, UID: {ck.uid}')
+            gim = GenshinInfoManager(ck.user_id, ck.uid)
+            abyss_info = await gim.get_abyss_info(abyss_index)
+            if isinstance(abyss_info, str):
+                log.info(f'原神深渊战报: ➤➤ {abyss_info}')
+                await msg.reply(abyss_info)
+            else:
+                log.info('原神深渊战报: ➤➤ 数据获取成功')
+                try:
+                    img = await draw_abyss_card(abyss_info)
+                    log.info('原神深渊战报: ➤➤➤ 制图完成')
+                    img.save('Temp/sy.png')
+                    url = await bot.client.create_asset('Temp/sy.png')
+                    await msg.reply(url, type=MessageTypes.IMG)
+                except Exception as e:
+                    traceback.print_exc()
+                    log.error(f'原神深渊战报: ➤➤➤ 制图出错: {e}')

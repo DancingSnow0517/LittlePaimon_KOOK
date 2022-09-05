@@ -35,6 +35,7 @@ class WebappThread(Thread):
 
     def stop(self):
         if self.server:
+            log.info('正在关闭web服务...')
             self.server.stop()
 
 
