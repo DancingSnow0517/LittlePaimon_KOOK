@@ -17,6 +17,7 @@ from .api.panel import registered_panel, ClickablePanel
 from .database import connect
 from .panels import MainPanel
 from .utils import requests
+from .utils.browser import install_browser
 from .utils.config import config
 from .utils.message_util import update_message, update_private_message
 from .webapp import app
@@ -57,6 +58,7 @@ def main():
     async def on_startup(_: LittlePaimon):
         await connect()
         await check_resource()
+        await install_browser()
         if config.enable_web_app:
             webapp_thread.start()
         for i in inspect.getmembers(

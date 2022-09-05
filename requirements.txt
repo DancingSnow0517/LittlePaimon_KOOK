@@ -12,3 +12,6 @@ KaiheilaCardBuilder>=1.2.5
 numpy~=1.23.2
 tortoise-orm>=0.19.2
 pytz>=2022.2.1
+matplotlib>=3.5.3
+Jinja2>=3.1.2
+playwright>=1.25.2
