@@ -3,7 +3,7 @@ import logging
 from .damage_cal import get_role_dmg
 from ...config.path import RESOURCE_BASE_PATH, ENKA_RES
 from ...database.models.character import Character
-from ...utils.alias import get_icon
+from ...utils.alias import get_chara_icon
 from ...utils.files import load_image
 from ...utils.genshin import GenshinTools
 from ...utils.image_util import PMImage, font_manager as fm
@@ -31,10 +31,12 @@ async def draw_chara_detail(uid: str, info: Character):
 
     # 立绘
     chara_img = await load_image(
-        RESOURCE_BASE_PATH / 'splash' / f'{get_icon(chara_id=info.character_id, icon_type="splash")}.png')
+        RESOURCE_BASE_PATH / 'splash' / f'{get_chara_icon(chara_id=info.character_id, icon_type="splash")}.png')
     if chara_img.height >= 630:
         chara_img = chara_img.resize((chara_img.width * 630 // chara_img.height, 630))
-        img.paste(chara_img, (770 - chara_img.width // 2, 20))
+    else:
+        chara_img = chara_img.resize((chara_img.width, chara_img.height * 630 // chara_img.height))
+    img.paste(chara_img, (770 - chara_img.width // 2, 20))
     img.paste(await load_image(ENKA_RES / '底遮罩.png'), (0, 0))
     # 地区
     if info.name not in ['荧', '空', '埃洛伊']:

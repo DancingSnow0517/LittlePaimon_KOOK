@@ -4,14 +4,13 @@ from typing import Tuple, Optional, List
 from ...config.path import RESOURCE_BASE_PATH
 from ...database.models.character import Character, Weapon
 from ...database.models.player_info import PlayerWorldInfo, Player, PlayerInfo
+from ...utils.alias import get_chara_icon
 from ...utils.files import load_image
 from ...utils.image_util import PMImage, font_manager as fm
 from ...utils import requests
 
 RESOURCES = RESOURCE_BASE_PATH / 'player_card'
 ICON = RESOURCE_BASE_PATH / 'icon'
-THUMB = RESOURCE_BASE_PATH / 'thumb'
-THUMB.mkdir(parents=True, exist_ok=True)
 WEAPON = RESOURCE_BASE_PATH / 'weapon'
 
 
@@ -27,14 +26,17 @@ def get_percent_text(percent: int) -> str:
 
 
 async def get_avatar(avatar_url: str, size: Tuple[int, int] = (146, 146)) -> Optional[PMImage]:
-    avatar = await requests.get_img(avatar_url)
-    if isinstance(avatar, str):
-        return None
-    avatar = PMImage(image=avatar)
-    avatar.resize(size)
-    avatar.to_circle('circle')
-    avatar.add_border(6, '#ddcdba', 'circle')
-    return avatar
+    try:
+        avatar = await requests.get_img(avatar_url)
+        if isinstance(avatar, str):
+            return None
+        avatar = PMImage(image=avatar)
+        avatar.resize(size)
+        avatar.to_circle('circle')
+        avatar.add_border(6, '#ddcdba', 'circle')
+        return avatar
+    except Exception:
+        return PMImage(size=size, color=(255, 255, 255, 255))
 
 
 async def draw_weapon_icon(weapon: Weapon, size: Tuple[int, int] = (65, 65)) -> PMImage:
@@ -49,7 +51,7 @@ async def draw_character_card(info: Character) -> Optional[PMImage]:
     if info is None:
         return None
     # 头像
-    avatar = PMImage(await load_image(THUMB / f'{info.name}.png'))
+    avatar = PMImage(await load_image(RESOURCE_BASE_PATH / 'avatar' / f'{get_chara_icon(name=info.name)}.png'))
     avatar.to_circle('circle')
     avatar.resize((122, 122))
     # 背景
@@ -78,18 +80,21 @@ async def draw_world_card(img: PMImage, info: PlayerWorldInfo):
         pass
     elif info.name == '蒙德':
         if info.unlock:
+            img.draw_ring((225, 225), (89, 1157), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (110, 301), 1387, fm.get('hywh', 24), 'white', 'center')
             img.text(str(info.level) if info.level != 8 else 'Max', 150, 1447, fm.get('hywh', 24), 'white')
         else:
             img.text('未解锁', (110, 301), 1387, fm.get('hywh', 24), 'white', 'center')
     elif info.name == '璃月':
         if info.unlock:
+            img.draw_ring((225, 225), (313, 1157), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (334, 525), 1387, fm.get('hywh', 24), 'white', 'center')
             img.text(str(info.level) if info.level != 8 else 'Max', 374, 1447, fm.get('hywh', 24), 'white')
         else:
             img.text('未解锁', (334, 525), 1387, fm.get('hywh', 24), 'white', 'center')
     elif info.name == '稻妻':
         if info.unlock:
+            img.draw_ring((225, 225), (537, 1157), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (558, 749), 1387, fm.get('hywh', 24), 'white', 'center')
             img.text(str(info.level) if info.level != 10 else 'Max', 598, 1447, fm.get('hywh', 24), 'white')
             img.text(str(info.tree_level) if info.tree_level != 50 else 'Max', 710, 1447, fm.get('hywh', 24),
@@ -99,6 +104,7 @@ async def draw_world_card(img: PMImage, info: PlayerWorldInfo):
             img.text('未解锁', (558, 749), 1387, fm.get('hywh', 24), 'white', 'center')
     elif info.name == '龙脊雪山':
         if info.unlock:
+            img.draw_ring((225, 225), (89, 1494), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (110, 301), 1724, fm.get('hywh', 24), 'white', 'center')
             img.text(str(info.tree_level) if info.tree_level != 12 else 'Max', 150, 1784, fm.get('hywh', 24),
                      'white')
@@ -115,6 +121,7 @@ async def draw_world_card(img: PMImage, info: PlayerWorldInfo):
                      'center')
     elif info.name == '层岩巨渊·地下矿区':
         if info.unlock:
+            img.draw_ring((225, 225), (313, 1494), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(f'地下{get_percent_text(info.percent)}', (334, 525), 1751, fm.get('hywh', 24), 'white',
                      'center')
         else:
@@ -122,11 +129,13 @@ async def draw_world_card(img: PMImage, info: PlayerWorldInfo):
                      'center')
     elif info.name == '渊下宫':
         if info.unlock:
+            img.draw_ring((225, 225), (537, 1494), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (558, 749), 1724, fm.get('hywh', 24), 'white', 'center')
         else:
             img.text('未解锁', (558, 749), 1724, fm.get('hywh', 24), 'white', 'center')
     elif info.name == '须弥':
         if info.unlock:
+            img.draw_ring((225, 225), (761, 1157), 0.08, info.percent / 1000, ['white', (0, 0, 0, 0)])
             img.text(get_percent_text(info.percent), (782, 973), 1387, fm.get('hywh', 24), 'white', 'center')
             img.text(str(info.level) if info.level != 10 else 'Max', 826, 1447, fm.get('hywh', 24), 'white')
             img.text(str(info.tree_level) if info.tree_level != 50 else 'Max', 938, 1447, fm.get('hywh', 24),
@@ -173,7 +182,8 @@ async def draw_player_card(player: Player, info: PlayerInfo, characters: List[Ch
                  (0, 0, 0, 153), 'center')
 
     # 世界探索
-    await asyncio.gather(*[draw_world_card(img, w) for w in info.world_explore.list()])
+    for w in info.world_explore.list():
+        await draw_world_card(img, w)
     # 角色
     for i in range(len(characters)):
         img.paste(await draw_character_card(characters[i]), (112 + 222 * (i % 4), 1959 + 341 * (i // 4)))

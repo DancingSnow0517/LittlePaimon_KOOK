@@ -7,6 +7,8 @@ from PIL import Image
 from . import requests
 
 cache_image: Dict[str, any] = {}
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                         'Chrome/104.0.0.0 Safari/537.36'}
 
 
 def load_json(path: Union[Path, str], encoding: str = 'utf-8'):
@@ -57,14 +59,15 @@ async def load_image(
         if path.exists():
             img = Image.open(path)
         elif path.name.startswith(('UI_', 'Skill_')):
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                              'Chrome/104.0.0.0 Safari/537.36'}
             try:
                 img = await requests.get_img(f'https://enka.network/ui/{path.name}', headers=headers, save_path=path,
                                              follow_redirects=True)
             except Exception as e:
-                raise FileNotFoundError(f'{path} not found') from e
+                try:
+                    img = await requests.get_img(f'https://file.minigg.icu/genshin/ui/{path.name}', headers=headers,
+                                                 save_path=path, follow_redirects=True)
+                except Exception as e:
+                    raise FileNotFoundError(f'{path} not found') from e
         else:
             try:
                 p = path.__str__().replace('\\', '/')

@@ -1,9 +1,11 @@
 import asyncio
+import datetime
 import logging
 import random
 from typing import Tuple
 
 from .draw import SignResult
+from ...database.models.cookie import LastQuery
 from ...utils.genshin_api import get_mihoyo_private_data, get_sign_reward_list
 
 log = logging.getLogger(__name__)
@@ -18,6 +20,8 @@ async def mhy_bbs_sign(user_id: str, uid: str) -> Tuple[SignResult, str]:
     :param uid: 原神uid
     :return: 签到成功天数或失败原因
     """
+    await LastQuery.update_or_create(user_id=user_id,
+                                     defaults={'uid': uid, 'last_time': datetime.datetime.now()})
     sign_info = await get_mihoyo_private_data(uid, user_id, 'sign_info')
     if isinstance(sign_info, str):
         log.info(f'米游社原神签到: ➤ 用户 {user_id} UID {uid}, 未绑定私人cookie')

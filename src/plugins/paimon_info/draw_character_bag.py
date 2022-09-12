@@ -6,6 +6,7 @@ from .draw_player_card import draw_weapon_icon, get_avatar
 from ...config.path import RESOURCE_BASE_PATH
 from ...database.models.character import Character
 from ...database.models.player_info import Player, PlayerInfo
+from ...utils.alias import get_chara_icon
 from ...utils.files import load_image
 from ...utils.genshin import GenshinTools
 from ...utils.image_util import PMImage, font_manager as fm
@@ -38,6 +39,7 @@ def sort_characters(characters: List[Character]) -> List[Character]:
     武器等级每级0.6/0.6/0.6/0.8/1分，精炼等级每级10/10/10/20/40，
     圣遗物每级0.5/0.8/1分，每个两件套20分，四件套60分，最后按降序排序
     """
+    characters = [chara for chara in characters if chara is not None]
     for chara in characters:
         chara.score = chara.level * (0.8 if chara.rarity == 4 else 1) + chara.fetter * 3
         if chara.talents:
@@ -67,7 +69,7 @@ async def draw_chara_card(info: Character) -> PMImage:
     :return: 角色卡片图
     """
     # 头像
-    avatar = PMImage(await load_image(THUMB / f'{info.name}.png'))
+    avatar = PMImage(await load_image(RESOURCE_BASE_PATH / 'avatar' / f'{get_chara_icon(name=info.name)}.png'))
     avatar.to_circle('circle')
     avatar.resize((122, 122))
     # 背景

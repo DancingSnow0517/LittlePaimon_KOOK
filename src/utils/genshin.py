@@ -97,6 +97,8 @@ class GenshinInfoManager:
             if len(character.constellation) >= 5:
                 data[ra_score['Talent'][cname][1]]['level_current'] += 3
             length = 4 if character.name in ['莫娜', '神里绫华'] else 3
+            if character.name == '安柏':
+                data[0], data[2] = data[2], data[0]
             character.talents = Talents(talent_list=[Talent(
                 name=t['name'],
                 level=t['level_current'],
@@ -181,7 +183,7 @@ class GenshinInfoManager:
         elif data_source == 'mihoyo':
             return await Character.get_or_none(**query, data_source='mihoyo')
         else:
-            characters = await Character.filter(**query).order_by('update_time')
+            characters = await Character.filter(**query).order_by('data_source')
             return characters[-1] if characters else None
 
     async def get_chara_bag(self) -> Tuple[Union[PlayerInfo, str], List[Character]]:
@@ -190,12 +192,14 @@ class GenshinInfoManager:
         :return: 原神玩家信息和角色列表
         """
         await self.set_last_query()
-        player_info, state = await PlayerInfo.get_or_create(user_id=self.user_id, uid=self.uid)
-        if state or player_info.update_time is None or player_info.update_time < (
+        player_info = await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)
+        if player_info is None or player_info.update_time is None or player_info.update_time < (
                 datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('Asia/Shanghai')):
             result = await self.update_from_mihoyo()
             if result != '更新成功':
                 return result, []
+        if (player_info := await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)) is None:
+            return '获取原神信息失败', []
         player_info = await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)
         character_list = []
         for character_name in CHARACTERS:
@@ -205,14 +209,15 @@ class GenshinInfoManager:
 
     async def get_player_info(self) -> Tuple[Union[PlayerInfo, str], Optional[List[Character]]]:
         await self.set_last_query()
-        player_info, state = await PlayerInfo.get_or_create(user_id=self.user_id, uid=self.uid)
-        if state or player_info.update_time is None or player_info.update_time < (
+        player_info = await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)
+        if player_info is None or player_info.update_time is None or player_info.update_time < (
                 datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('Asia/Shanghai')):
             result = await self.update_from_mihoyo()
             if result != '更新成功':
                 return result, None
             await self.update_from_enka()
-        player_info, _ = await PlayerInfo.get_or_create(user_id=self.user_id, uid=self.uid)
+        if (player_info := await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)) is None:
+            return '获取原神信息失败', None
         characters_list = []
         for chara in player_info.avatars:
             if c := await self.get_character(character_id=chara):
@@ -221,6 +226,7 @@ class GenshinInfoManager:
 
     async def get_abyss_info(self, abyss_index: int = 1) -> Union[AbyssInfo, str]:
         await self.set_last_query()
+        await AbyssInfo.filter(user_id=self.user_id, uid=self.uid).delete()
         result = await self.update_abyss_info(abyss_index)
         if result != '更新成功':
             return result

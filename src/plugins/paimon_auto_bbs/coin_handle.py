@@ -1,8 +1,9 @@
 import asyncio
+import datetime
 import logging
 import random
 
-from ...database.models.cookie import PrivateCookie
+from ...database.models.cookie import PrivateCookie, LastQuery
 from ...utils import requests
 from ...utils.genshin_api import get_old_version_ds, random_hex, random_text, get_ds
 
@@ -53,6 +54,12 @@ mihoyo_bbs_List = [
         'name': '崩坏：星穹铁道',
         'url': 'https://bbs.mihoyo.com/sr/',
     },
+    {
+        'id': '8',
+        'forumId': '57',
+        'name': '绝区零',
+        'url': 'https://bbs.mihoyo.com/zzz/'
+    }
 ]
 
 log = logging.getLogger(__name__)
@@ -123,7 +130,8 @@ class MihoyoBBSCoin:
         data = data.json()
         if data['retcode'] != 0:
             self.is_valid = False
-            self.state = 'Cookie已失效' if data['retcode'] in [-100, 10001] else f"出错了:{data['message']} {data['message']}"
+            self.state = 'Cookie已失效' if data['retcode'] in [-100,
+                                                               10001] else f"出错了:{data['message']} {data['message']}"
             log.info(f'米游币自动获取: ➤➤ {self.state}')
             return self.state
         self.available_coins = data['data']['can_get_points']
@@ -193,7 +201,8 @@ class MihoyoBBSCoin:
             data = req.json()
             if data['retcode'] != 0:
                 self.is_valid = False
-                self.state = 'Cookie已失效' if data['retcode'] in [-100, 10001] else f"出错了:{data['retcode']} {data['message']}"
+                self.state = 'Cookie已失效' if data['retcode'] in [-100,
+                                                                   10001] else f"出错了:{data['retcode']} {data['message']}"
                 log.info(f'米游币自动获取: ➤➤ {self.state}')
                 return self.state
             await asyncio.sleep(random.randint(3, 6))
@@ -281,6 +290,8 @@ async def mhy_bbs_coin(user_id: str, uid: str) -> str:
         return '你尚未绑定Cookie和Stoken，请先用ysb指令绑定！'
     elif cookie.stoken is None:
         return '你绑定Cookie中没有login_ticket，请重新用ysb指令绑定！'
+    await LastQuery.update_or_create(user_id=user_id,
+                                     defaults={'uid': uid, 'last_time': datetime.datetime.now()})
     log.info(f'米游币自动获取: ➤ 执行 用户 {user_id} UID {uid}, 的米游币获取')
     get_coin_task = MihoyoBBSCoin(cookie.stoken)
     result, msg = await get_coin_task.run()

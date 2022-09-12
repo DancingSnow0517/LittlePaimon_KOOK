@@ -5,7 +5,7 @@ import random
 import re
 import string
 import time
-from typing import Optional, Literal
+from typing import Optional, Literal, Union, Tuple
 
 from tortoise.expressions import Q
 
@@ -22,6 +22,7 @@ GAME_RECORD_API = 'https://api-takumi-record.mihoyo.com/game_record/card/wapi/ge
 SIGN_INFO_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/info'
 SIGN_REWARD_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/home'
 SIGN_ACTION_API = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign'
+AUTHKEY_API = 'https://api-takumi.mihoyo.com/binding/api/genAuthKey'
 
 log = logging.getLogger(__name__)
 
@@ -153,18 +154,29 @@ async def check_retcode(data: dict, cookie_info, cookie_type: str, user_id: str,
             elif cookie_info.status == 0:
                 await cookie_info.delete()
                 log.info(f'原神Cookie: 用户 {user_id} 的私人cookie {uid} 连续失效， 已删除')
-        else:
+        elif cookie_type == 'public':
             await CookieCache.filter(cookie=cookie_info.cookie).delete()
             await cookie_info.delete()
             log.info(f'原神Cookie: {cookie_info.id} 号公共cookie已失效，已删除')
+        else:
+            await PublicCookie.filter(cookie=cookie_info.cookie).delete()
+            await cookie_info.delete()
+            log.info(f'原神Cookie: UID: {cookie_info.uid} 使用的缓存 cookie 已失效，已删除')
         return False
     elif data['retcode'] == 10101:
         cookie_info.status = 2
-        await cookie_info.save()
         if cookie_info == 'private':
+            cookie_info.status = 2
+            await cookie_info.save()
             log.info(f'原神Cookie: 用户 {user_id} 的私人cookie {uid} 已达到每日30次查询上限')
-        else:
+        elif cookie_type == 'public':
+            cookie_info.status = 2
+            await cookie_info.save()
             log.info(f'原神Cookie: {cookie_info["cid"]} 号公共cookie已达到每日30次查询上限')
+        else:
+            await PublicCookie.filter(cookie=cookie_info.cookie).update(status=2)
+            await cookie_info.delete()
+            log.info(f'原神Cookie: UID {cookie_info.uid} 使用的缓存 cookie 已达到每日30次查询上限')
         return False
     else:
         if cookie_type == 'public':
@@ -172,7 +184,8 @@ async def check_retcode(data: dict, cookie_info, cookie_type: str, user_id: str,
         return True
 
 
-async def get_cookie(user_id: str, uid: str, check: bool = True, own: bool = False):
+async def get_cookie(user_id: str, uid: str, check: bool = True, own: bool = False) -> Tuple[
+    Union[None, PrivateCookie, PublicCookie, CookieCache], str]:
     """
     获取可用的cookie
     :param user_id: 用户id
@@ -218,7 +231,7 @@ async def get_mihoyo_public_data(
         user_id: Optional[str],
         mode: Literal['abyss', 'player_card', 'role_detail'],
         schedule_type: Optional[str] = '1'):
-    server_id = "cn_qd01" if uid[0] == '5' else "cn_gf01"
+    server_id = 'cn_qd01' if uid[0] == '5' else 'cn_gf01'
     check = True
     while True:
         cookie_info, cookie_type = await get_cookie(user_id, uid, check)
@@ -255,7 +268,7 @@ async def get_mihoyo_private_data(
         mode: Literal['role_skill', 'month_info', 'daily_note', 'sign_info', 'sign_action'],
         role_id: Optional[str] = None,
         month: Optional[str] = None):
-    server_id = "cn_qd01" if uid[0] == '5' else "cn_gf01"
+    server_id = 'cn_qd01' if uid[0] == '5' else 'cn_gf01'
     cookie_info, _ = await get_cookie(user_id, uid, True, True)
     if not cookie_info:
         return '未绑定私人cookie，获取cookie的教程：\ndocs.qq.com/doc/DQ3JLWk1vQVllZ2Z1\n获取后，使用[ysb cookie]指令绑定'
@@ -334,6 +347,46 @@ async def get_stoken_by_cookie(cookie: str) -> Optional[str]:
         else:
             return None
     return None
+
+
+async def get_authkey_by_stoken(user_id: str, uid: str) -> Tuple[Optional[str], bool, Optional[PrivateCookie]]:
+    """
+    根据stoken获取authkey
+    :param user_id: 用户id
+    :param uid: 原神uid
+    :return: authkey
+    """
+    server_id = 'cn_qd01' if uid[0] == '5' else 'cn_gf01'
+    cookie_info, _ = await get_cookie(user_id, uid, True, True)
+    if not cookie_info:
+        return '未绑定私人cookie，获取cookie的教程：\ndocs.qq.com/doc/DQ3JLWk1vQVllZ2Z1\n获取后，使用[ysb cookie]指令绑定', False, cookie_info
+    if not cookie_info.stoken:
+        return 'cookie中没有stoken字段，请重新绑定', False, cookie_info
+    headers = {
+        'Cookie': cookie_info.stoken,
+        'DS': get_old_version_ds(True),
+        'User-Agent': 'okhttp/4.8.0',
+        'x-rpc-app_version': '2.35.2',
+        'x-rpc-sys_version': '12',
+        'x-rpc-client_type': '5',
+        'x-rpc-channel': 'mihoyo',
+        'x-rpc-device_id': random_hex(32),
+        'x-rpc-device_name': random_text(random.randint(1, 10)),
+        'x-rpc-device_model': 'Mi 10',
+        'Referer': 'https://app.mihoyo.com',
+        'Host': 'api-takumi.mihoyo.com'}
+    data = await requests.post(url=AUTHKEY_API,
+                               headers=headers,
+                               json={
+                                   'auth_appid': 'webview_gacha',
+                                   'game_biz': 'hk4e_cn',
+                                   'game_uid': uid,
+                                   'region': server_id})
+    data = data.json()
+    if 'data' in data and 'authkey' in data['data']:
+        return data['data']['authkey'], True, cookie_info
+    else:
+        return None, False, cookie_info
 
 
 async def get_enka_data(uid):

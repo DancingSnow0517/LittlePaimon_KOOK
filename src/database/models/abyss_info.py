@@ -212,6 +212,7 @@ class AbyssInfo(Model):
                                                    value=data['energy_skill_rank'][0]['value'])
 
         if 'floors' in data and data['floors']:
+            info.total_star = 0
             for floor in data['floors']:
                 floor_info = FloorInfo(index=floor['index'],
                                        is_unlock=floor['is_unlock'],
@@ -242,6 +243,8 @@ class AbyssInfo(Model):
                 floor_info.end_times_up = end_times_up
                 floor_info.end_times_down = end_times_down
                 info.floors[floor['index']] = floor_info
+                if floor['index'] in [9, 10, 11, 12]:
+                    info.total_star += sum(int(l['star']) for l in floor['levels'])
 
         info.update_time = datetime.datetime.now()
         await info.save()
