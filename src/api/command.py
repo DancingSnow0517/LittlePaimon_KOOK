@@ -1,7 +1,9 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from khl.command import Command, DefaultLexer
+
+from .interface import CommandGroups
 
 log = logging.getLogger(__name__)
 
@@ -11,12 +13,14 @@ class CommandInfo:
     desc: str
     usage: str
     cmd: Command
+    command_group: List[CommandGroups]
 
-    def __init__(self, name: str, desc: str, usage: str, cmd: Command) -> None:
+    def __init__(self, name: str, desc: str, usage: str, cmd: Command, command_group: List[CommandGroups]) -> None:
         self.name = name
         self.desc = desc
         self.usage = usage
         self.cmd = cmd
+        self.command_group = command_group
 
     def __repr__(self) -> str:
         return f"CommandInfo(name={self.name}, desc={self.desc}, usage={self.usage})"
@@ -28,9 +32,9 @@ class CommandInfoManager:
     def __init__(self) -> None:
         self._info_map = {}
 
-    def __call__(self, desc: str = '暂无命令介绍', usage: str = '暂无命令用法'):
+    def __call__(self, desc: str = '暂无命令介绍', usage: str = '暂无命令用法', command_group: List[CommandGroups] = ()):
         def _dec(cmd: Command):
-            self.add(CommandInfo(cmd.name, desc, usage, cmd))
+            self.add(CommandInfo(cmd.name, desc, usage, cmd, command_group))
             return cmd
 
         return _dec

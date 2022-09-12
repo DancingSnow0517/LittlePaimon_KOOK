@@ -103,7 +103,8 @@ def main():
                 Section(Kmarkdown(f'**{info.name} 命令使用帮助**\n---\n'
                                   f'> **别名**: {", ".join(info.cmd.lexer.triggers) if isinstance(info.cmd.lexer, DefaultLexer) else "无"}\n'
                                   f'**描述**: {info.desc}\n'
-                                  f'**用法**: {info.usage}\n')),
+                                  f'**用法**: {info.usage}\n'
+                                  f'**分组**: {", ".join([str(i.value) for i in info.command_group])}')),
                 color='#FF74E3'
             )
         card.append(Context(Kmarkdown(f'小派蒙版本: {VERSION}')))
