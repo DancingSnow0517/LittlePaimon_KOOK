@@ -11,14 +11,20 @@ from typing import List
 
 from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
+from khl.command import DefaultLexer
+from khl_card import CardMessage, Card
+from khl_card.accessory import Kmarkdown
+from khl_card.modules import Header, Section, Context
 
 from . import panels
+from .api.command import CommandInfoManager, CommandInfo
 from .api.panel import registered_panel, ClickablePanel
 from .database import connect
 from .panels import MainPanel
 from .utils import requests
 from .utils.browser import install_browser
 from .utils.config import config
+from .utils.constant import VERSION
 from .utils.message_util import update_message, update_private_message
 from .webapp import app
 
@@ -41,9 +47,11 @@ class WebappThread(Thread):
 
 
 class LittlePaimon(Bot):
+    command_info: CommandInfoManager
 
     def __init__(self):
         super().__init__(config.token)
+        self.command_info = CommandInfoManager()
 
     def my_command(self, name: str = '', *, aliases: List[str] = (), rules=()):
         return self.command(name, prefixes=['!!', '！！'], aliases=list(aliases), rules=list(rules))
@@ -51,7 +59,6 @@ class LittlePaimon(Bot):
 
 def main():
     bot = LittlePaimon()
-
     webapp_thread = WebappThread()
 
     @bot.on_startup
@@ -85,9 +92,36 @@ def main():
 
         log.info('插件加载完成。共 %d 个', len(modules))
 
+    def make_help_card(info: CommandInfo = None) -> CardMessage:
+        if info is None:
+            card = Card(
+                Header('小派蒙的帮助信息'),
+                *[make_help_card(i) for i in bot.command_info.info_map.values()]
+            )
+        else:
+            card = Card(
+                Section(Kmarkdown(f'**{info.name} 命令使用帮助**\n---\n'
+                                  f'> **别名**: {", ".join(info.cmd.lexer.triggers) if isinstance(info.cmd.lexer, DefaultLexer) else "无"}\n'
+                                  f'**描述**: {info.desc}\n'
+                                  f'**用法**: {info.usage}\n')),
+                color='#FF74E3'
+            )
+        card.append(Context(Kmarkdown(f'小派蒙版本: {VERSION}')))
+        cm = CardMessage(card)
+        return cm
+
+    @bot.command_info('小派蒙的帮助信息', '直接 !!help 即可')
     @bot.my_command('help', aliases=['帮助'])
-    async def help_panel(msg: Message):
-        await msg.ctx.channel.send(MainPanel.get_panel().build())
+    async def help_panel(msg: Message, cmd: str = None):
+        if cmd is None:
+            await msg.ctx.channel.send(MainPanel.get_panel().build())
+        else:
+            info = bot.command_info.get(name=cmd)
+            if info:
+                cm = make_help_card(info)
+                await msg.reply(cm.build())
+            else:
+                await msg.reply(f'未找到命令： {cmd}')
 
     @bot.on_event(EventTypes.MESSAGE_BTN_CLICK)
     async def on_button_click(_: LittlePaimon, event: Event):
@@ -139,6 +173,6 @@ async def check_resource():
         try:
             await requests.download(f'http://img.genshin.cherishmoon.fun/resources/{resource["path"]}', file_path)
             await asyncio.sleep(0.5)
-        except Exception as e:
+        except Exception:
             log.warning(f'下载 {resource["path"].split("/")[-1]} 失败')
     log.info('资源检查完成')
