@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 async def on_startup(bot: 'LittlePaimon'):
+    @bot.command_info('查看指定月份的原石、摩拉获取情况', '!!每月札记 [月份]')
     @bot.my_command('myzj', aliases=['札记信息', '每月札记'])
     async def myzj(msg: Message, month: str = None):
         month_now = datetime.datetime.now().month

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 async def on_startup(bot: 'LittlePaimon'):
     # noinspection PyShadowingBuiltins
+    @bot.command_info('查看某日开放材料刷取的角色和武器', '<今天|周几>材料')
     @bot.command('daily_material',
                  regex=r'^(?P<day>周[一二三四五六日]|[今明后]天|[今明后]日|现在)(?P<type>天赋|武器|角色|)材料$')
     async def daily_material(msg: Message, r_day: str, r_type: str):

@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Optional, List
 
 from khl.command import Command, DefaultLexer
+from khl_card import Card, Kmarkdown, Section
 
 from .interface import CommandGroups
 
@@ -25,6 +26,17 @@ class CommandInfo:
     def __repr__(self) -> str:
         return f"CommandInfo(name={self.name}, desc={self.desc}, usage={self.usage})"
 
+    def make_help_card(self) -> Card:
+        card = Card(
+            Section(Kmarkdown(f'**{self.name} 命令使用帮助**\n---\n'
+                              f'> **别名**: {", ".join(self.cmd.lexer.triggers) if isinstance(self.cmd.lexer, DefaultLexer) else "无"}\n'
+                              f'**描述**: {self.desc}\n'
+                              f'**用法**: {self.usage}\n'
+                              f'**分组**: {", ".join([str(i.value) for i in self.command_group])}')),
+            color='#FF74E3'
+        )
+        return card
+
 
 class CommandInfoManager:
     _info_map: Dict[str, CommandInfo]
@@ -32,7 +44,8 @@ class CommandInfoManager:
     def __init__(self) -> None:
         self._info_map = {}
 
-    def __call__(self, desc: str = '暂无命令介绍', usage: str = '暂无命令用法', command_group: List[CommandGroups] = ()):
+    def __call__(self, desc: str = '暂无命令介绍', usage: str = '暂无命令用法',
+                 command_group: List[CommandGroups] = ()):
         def _dec(cmd: Command):
             self.add(CommandInfo(cmd.name, desc, usage, cmd, command_group))
             return cmd

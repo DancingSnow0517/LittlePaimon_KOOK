@@ -30,6 +30,7 @@ async def on_startup(bot: 'LittlePaimon'):
             continue
     my_ip = '127.0.0.1'
 
+    @bot.command_info('绑定原神 **uid** 和 **cookie**', '!!原神绑定 [cookie]')
     @bot.my_command('ysb', aliases=['原神绑定', '绑定uid'])
     async def ysb(msg: Message, *cookie: str):
         if len(cookie) == 0:
@@ -62,6 +63,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 ret_msg = '这个cookie无效哦，请确认是否正确\n [cookie获取方法](docs.qq.com/doc/DQ3JLWk1vQVllZ2Z1)'
             await msg.reply(text_avatar(ret_msg, msg.author).build())
 
+    @bot.command_info('查询已绑定的原神cookie情况', '!!查询绑定')
     @bot.my_command('ysbc', aliases=['查询ck', '查询绑定', '绑定信息', '校验绑定'])
     async def ysbc(msg: Message):
         log.info(f'开始校验 {msg.author.id} 的绑定情况')
@@ -92,6 +94,7 @@ async def on_startup(bot: 'LittlePaimon'):
 
     ysbc.on_exception(Exceptions.Handler.ArgLenNotMatched)(on_exception())
 
+    @bot.command_info('删除你绑定的 **所有** cookie', '!!删除cookie')
     @bot.my_command('delete_ck', aliases=['删除cookie'])
     async def delete_ck(msg: Message):
         await PrivateCookie.filter(user_id=msg.author.id).delete()

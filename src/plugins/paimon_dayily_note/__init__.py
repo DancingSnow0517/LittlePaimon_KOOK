@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
+    @bot.command_info('查看原神实时便笺(树脂情况)', '!!实时便笺 [UID]')
     @bot.my_command('ssbq', aliases=['实时便笺', '实时便签', '当前树脂'])
     async def ssbq(msg: Message, uid: str = None):
         log.info('原神实时便签: 开始执行查询')
