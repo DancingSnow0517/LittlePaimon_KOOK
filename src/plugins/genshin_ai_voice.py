@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 
 async def on_startup(bot: 'LittlePaimon'):
+    @bot.command_info('AI生成对应角色语音', '!!AI语音 [文字] [角色]')
     @bot.my_command('tts', aliases=['AI语音'])
     async def tts(msg: Message, text: str, char: str = '派蒙', noise: float = 0.667, noisew: float = 0.8,
                   length: float = 1.2):
@@ -28,7 +29,7 @@ async def on_startup(bot: 'LittlePaimon'):
             ).build()])
 
 
-async def get_voice(text: str, char: str, noise: float = 0.667, noisew: float = 0.8, length: float = 0.8,
+async def get_voice(text: str, char: str, noise: float = 0.667, noisew: float = 0.8, length: float = 1.2,
                     format: str = 'mp3') -> bytes:
     """
     得到 TTS 语音

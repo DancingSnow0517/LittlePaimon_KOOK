@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List
 
 from khl import Message
 from khl_card import Card, ThemeTypes
@@ -10,6 +10,20 @@ from ...utils.alias import get_match_alias
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
+
+
+class WaitInfo:
+    match_alias: List[str]
+    type: str
+    img_url: str
+
+    def __init__(self, **kwargs) -> None:
+        self.match_alias = kwargs.get('match_alias', [])
+        self.type = kwargs.get('type', '')
+        self.img_url = kwargs.get('img_url', '')
+
+
+wait_to_match: Dict[str, WaitInfo] = {}
 
 
 async def on_startup(bot: 'LittlePaimon'):
@@ -51,6 +65,24 @@ async def on_startup(bot: 'LittlePaimon'):
                 theme=ThemeTypes.NONE
             ).build()])
 
+    @bot.command('match', regex=r'^(?P<index>\d+)$')
+    async def match(msg: Message, index: int):
+        if msg.author.id in wait_to_match:
+            if index > len(wait_to_match[msg.author.id].match_alias) or index <= 0:
+                await msg.reply('这不是个正确的选项')
+            else:
+                name = wait_to_match[msg.author.id].match_alias[index - 1]
+                try:
+                    await msg.reply([Card(
+                        Container(Image(wait_to_match[msg.author.id].img_url.format(name))),
+                        theme=ThemeTypes.NONE
+                    ).build()])
+                except Exception as e:
+                    print(e)
+                    await msg.reply(f'没有找到{name}的图鉴')
+                finally:
+                    del wait_to_match[msg.author.id]
+
     def create_wiki_matcher(pattern: str, help_fun: str, help_name: str):
         # noinspection PyShadowingBuiltins
         @bot.command_info(f'查看该{help_name}的{help_fun}', usage=f'<{help_name}名> {help_fun}')
@@ -82,12 +114,13 @@ async def on_startup(bot: 'LittlePaimon'):
                 return
             match_alias = get_match_alias(name, type)
             true_name = match_alias[0] if (
-                        isinstance(match_alias, list) and len(match_alias) == 1) else match_alias if isinstance(
+                    isinstance(match_alias, list) and len(match_alias) == 1) else match_alias if isinstance(
                 match_alias, str) else None
             if true_name:
                 try:
                     await msg.reply([Card(
-                        Container(Image(img_url.format(true_name)))
+                        Container(Image(img_url.format(true_name))),
+                        theme=ThemeTypes.NONE
                     ).build()])
                 except:
                     await msg.reply(f'没有找到{name}的图鉴')
@@ -97,14 +130,16 @@ async def on_startup(bot: 'LittlePaimon'):
                     match_alias = list(match_alias.keys())
                 await msg.reply([Card(
                     Section(Kmarkdown('请 **准确的** 告诉小派蒙要查询的 **名字** 哦~\n你可能想要查询的:')),
-                    *[Section(Kmarkdown(f'{match_alias.index(n) + 1}、`{n}`')) for n in match_alias]
+                    *[Section(Kmarkdown(f'{match_alias.index(n) + 1}、`{n}`')) for n in match_alias],
+                    Section(Kmarkdown('请回答小派蒙对应的数字'))
                 ).build()])
+                wait_to_match[msg.author.id] = WaitInfo(match_alias=match_alias, type=type, img_url=img_url)
             else:
                 await msg.reply(f'没有找到{name}的图鉴')
 
-    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>(原魔|怪物)(图鉴|攻略))(?P<name2>\w*)', '原魔图鉴', '原魔')
-    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>武器(图鉴|攻略))(?P<name2>\w*)', '武器图鉴', '武器')
-    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>圣遗物(图鉴|攻略))(?P<name2>\w*)', '圣遗物图鉴', '圣遗物')
+    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>(?:原魔|怪物)(?:图鉴|攻略))(?P<name2>\w*)', '原魔图鉴', '原魔')
+    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>武器(?:图鉴|攻略))(?P<name2>\w*)', '武器图鉴', '武器')
+    create_wiki_matcher(r'(?P<name1>\w*)(?P<type>圣遗物(?:图鉴|攻略))(?P<name2>\w*)', '圣遗物图鉴', '圣遗物')
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>角色攻略)(?P<name2>\w*)', '角色攻略', '角色')
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>角色材料)(?P<name2>\w*)', '角色材料', '角色')
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>收益曲线)(?P<name2>\w*)', '收益曲线', '角色')

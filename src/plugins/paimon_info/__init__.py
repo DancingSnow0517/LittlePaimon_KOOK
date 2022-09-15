@@ -149,7 +149,7 @@ async def on_startup(bot: 'LittlePaimon'):
                     log.error(f'原神深渊战报: ➤➤➤ 制图出错: {e}')
 
     @bot.command_info('随机角色同人图+角色信息卡片', '!!角色图 [角色名]')
-    @bot.my_command('ysc', aliases=['角色图'])
+    @bot.my_command('ysc', aliases=['角色图', '角色卡片'])
     async def ysc(msg: Message, *characters: str):
         log.info('原神角色卡片: 开始执行')
         chars = get_characters(characters)

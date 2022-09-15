@@ -3,6 +3,11 @@
   "log_level": "INFO",
 
   "enable_web_app": true,
+  "public_ip": "127.0.0.1",
   "web_app_port": 8888,
-  "web_app_address": "0.0.0.0"
+  "web_app_address": "0.0.0.0",
+
+  "admin": [
+
+  ]
 }

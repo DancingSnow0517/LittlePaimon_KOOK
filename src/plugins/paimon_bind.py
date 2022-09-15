@@ -21,14 +21,6 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    for _ in range(5):
-        try:
-            my_ip = await requests.get('https://api.ipify.org/?format=json')
-            my_ip = my_ip.json()['ip']
-            break
-        except:
-            continue
-    my_ip = '127.0.0.1'
 
     @bot.command_info('绑定原神 **uid** 和 **cookie**', '!!原神绑定 [cookie]')
     @bot.my_command('ysb', aliases=['原神绑定', '绑定uid'])
@@ -37,7 +29,7 @@ async def on_startup(bot: 'LittlePaimon'):
             cm = CardMessage(Card(
                 Section(Kmarkdown('**使用方法：`!!ysb 你的米游社cookie`**')),
                 Section(Kmarkdown('也可以使用网页来绑定（如果功能开启了）'),
-                        accessory=Button(PlainText('访问'), value=f'http://{my_ip}:{config.web_app_port}',
+                        accessory=Button(PlainText('访问'), value=f'http://{config.public_ip}:{config.web_app_port}',
                                          click='link')),
                 Context(Kmarkdown(f'你的用户id：{msg.author.id}'))
             ))

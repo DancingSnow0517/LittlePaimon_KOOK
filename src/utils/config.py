@@ -2,6 +2,7 @@ import json
 import os.path
 from pathlib import Path
 from shutil import copyfile
+from typing import List
 
 from pydantic import BaseModel
 
@@ -12,6 +13,8 @@ class Config(BaseModel):
     enable_web_app: bool
     web_app_port: int
     web_app_address: str
+    admin: List[str]
+    public_ip: str
 
     # noinspection PyTypeChecker
     @classmethod
@@ -22,7 +25,7 @@ class Config(BaseModel):
 
     def save(self):
         with open('config.json', 'w', encoding='utf-8') as f:
-            json.dump(self.dict(), indent=4, ensure_ascii=False)
+            json.dump(self.dict(), f, indent=4, ensure_ascii=False)
 
 
 config = Config.parse_file(Path() / 'config.json')

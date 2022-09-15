@@ -28,11 +28,12 @@ class CommandInfo:
 
     def make_help_card(self) -> Card:
         card = Card(
-            Section(Kmarkdown(f'**{self.name} 命令使用帮助**\n---\n'
+            Section(Kmarkdown(f'**{self.name} 命令使用帮助**\n'
                               f'> **别名**: {", ".join(self.cmd.lexer.triggers) if isinstance(self.cmd.lexer, DefaultLexer) else "无"}\n'
                               f'**描述**: {self.desc}\n'
                               f'**用法**: {self.usage}\n'
-                              f'**分组**: {", ".join([str(i.value) for i in self.command_group])}')),
+                              f'**分组**: {", ".join([str(i.value) for i in self.command_group])}\n\n'
+                              f'---')),
             color='#FF74E3'
         )
         return card

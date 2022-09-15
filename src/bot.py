@@ -11,7 +11,7 @@ from typing import List
 
 from gevent import pywsgi
 from khl import Bot, Event, EventTypes, Message, GuildUser, User
-from khl_card import CardMessage, Card
+from khl_card import Card
 
 from . import panels
 from .api.command import CommandInfoManager
@@ -52,6 +52,14 @@ class LittlePaimon(Bot):
     def my_command(self, name: str = '', *, aliases: List[str] = (), rules=()):
         return self.command(name, prefixes=['!!', '！！'], aliases=list(aliases), rules=list(rules))
 
+    def admin_command(self, name: str = '', *, aliases: List[str] = (), rules=()):
+        return self.my_command(name, aliases=aliases, rules=rules + (self.is_admin,))
+
+    @staticmethod
+    def is_admin(msg: Message) -> bool:
+        """a rule check is admin"""
+        return msg.author.id in config.admin
+
 
 def main():
     bot = LittlePaimon()
@@ -88,7 +96,7 @@ def main():
 
         log.info('插件加载完成。共 %d 个', len(modules))
 
-    @bot.command_info('小派蒙的帮助信息', '直接 !!help 即可')
+    @bot.command_info('小派蒙的帮助信息', '直接 !!help 即可。或 !!help [命令名字] 来查看具体命令用法')
     @bot.my_command('help', aliases=['帮助'])
     async def help_panel(msg: Message, cmd: str = None):
         if cmd is None:
