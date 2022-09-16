@@ -17,8 +17,6 @@ class MainPanel(ClickablePanel):
                 Section(Kmarkdown('命令中的 `[ ]` 不用加进去。')),
                 Section(Kmarkdown('例: `[UID]` 只需要将这个替换为你的 `UID`。`[cookie]` 同理')),
                 Section(Kmarkdown('可以使用命令 `!!帮助 all` 来查看所有命令')),
-                Section(Kmarkdown(
-                    '强烈建议在 **服务器** 中使用小派蒙，而不是私聊\n由于 KOOK 已知 BUG，私聊更新卡片消息会导致按钮 **失效**')),
                 ActionGroup(
                     GenshinInfoPanel().get_button(ThemeTypes.INFO),
                     GachaPanel().get_button(),
@@ -237,6 +235,8 @@ class AdminPanel(ClickablePanel):
             Section(Kmarkdown('**校验所有cookie**\n用法: !!校验所有cookie')),
             Divider(),
             Section(Kmarkdown('**添加公共cookie**\n用法: !!添加公共cookie [cookie]')),
+            Divider(),
+            Section(Kmarkdown('**服务器列表**\n用法: !!服务器列表')),
             Divider(),
             Section(Kmarkdown('**公告**\n用法: !!公告 [公告内容]')),
             Divider(),

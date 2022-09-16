@@ -67,6 +67,7 @@ def main():
 
     @bot.on_startup
     async def on_startup(_: LittlePaimon):
+        await check_online()
         await connect()
         await check_resource()
         await install_browser()
@@ -138,6 +139,8 @@ def main():
                     await update_private_message(registered_panel[panel_id].get_panel().build(), msg_id,
                                                  bot.client.gate)
 
+    bot.task.add_interval(minutes=30, timezone='Asia/Shanghai')(check_online)
+
     bot.run()
     webapp_thread.stop()
 
@@ -168,3 +171,9 @@ async def check_resource():
         except Exception:
             log.warning(f'下载 {resource["path"].split("/")[-1]} 失败')
     log.info('资源检查完成')
+
+
+async def check_online():
+    res = await requests.post('http://bot.gekj.net/api/v1/online.bot', headers={'uuid': config.botmarket_uuid})
+    res = res.json()
+    log.info(res['msg'])

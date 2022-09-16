@@ -15,6 +15,7 @@ class Config(BaseModel):
     web_app_address: str
     admin: List[str]
     public_ip: str
+    botmarket_uuid: str
 
     # noinspection PyTypeChecker
     @classmethod
