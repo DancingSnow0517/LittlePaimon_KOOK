@@ -15,3 +15,6 @@ pytz>=2022.2.1
 matplotlib>=3.5.3
 Jinja2>=3.1.2
 playwright>=1.25.2
+APScheduler>=3.9.1
+python-dateutil>=2.8.2
+lxml>=4.9.1

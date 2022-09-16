@@ -1,4 +1,4 @@
-from khl_card import CardMessage, Card
+from khl_card import CardMessage, Card, ThemeTypes
 from khl_card.accessory import Kmarkdown, Button, PlainText
 from khl_card.modules import ActionGroup, Section, Header, Divider, Context, Invite
 
@@ -20,10 +20,10 @@ class MainPanel(ClickablePanel):
                 Section(Kmarkdown(
                     '强烈建议在 **服务器** 中使用小派蒙，而不是私聊\n由于 KOOK 已知 BUG，私聊更新卡片消息会导致按钮 **失效**')),
                 ActionGroup(
+                    GenshinInfoPanel().get_button(ThemeTypes.INFO),
                     GachaPanel().get_button(),
                     SignPanel().get_button(),
-                    DailyNotePanel().get_button(),
-                    GenshinInfoPanel().get_button()
+                    DailyNotePanel().get_button()
                 ),
                 ActionGroup(
                     GenshinWikiPanel().get_button(),
@@ -62,7 +62,7 @@ class GachaPanel(ClickablePanel):
             Section(Kmarkdown('**模拟抽卡记录**\n用法: `!!模拟抽卡记录`')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -88,7 +88,7 @@ class SignPanel(ClickablePanel):
             Section(Kmarkdown('**米游币获取**\n用法: !!米游币获取 [UID]')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -111,7 +111,7 @@ class DailyNotePanel(ClickablePanel):
             Section(Kmarkdown('**实时便笺**\n用法: !!实时便笺 [UID]')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -143,8 +143,10 @@ class GenshinInfoPanel(ClickablePanel):
             Divider(),
             Section(Kmarkdown('**每月札记**\n用法: !!每月札记 [月份]')),
             Divider(),
+            Section(Kmarkdown('**原神日历**\n用法: !!原神日历')),
+            Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -181,7 +183,7 @@ class GenshinWikiPanel(ClickablePanel):
             Section(Kmarkdown('**参考面板**\n用法: <角色名>参考面板')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -210,7 +212,7 @@ class PaimonBindPanel(ClickablePanel):
             Section(Kmarkdown('**查询绑定**\n用法: !!查询绑定')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -239,7 +241,7 @@ class AdminPanel(ClickablePanel):
             Section(Kmarkdown('**公告**\n用法: !!公告 [公告内容]')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
@@ -270,7 +272,7 @@ class AIVoicePanel(ClickablePanel):
                               '这些参数可以自行组合，找到合适的效果')),
             Divider(),
             ActionGroup(
-                MainPanel().get_button()
+                MainPanel().get_button(ThemeTypes.DANGER)
             ),
             Divider(),
             Context(Kmarkdown(f'当前小派蒙版本: **{VERSION}**'))
