@@ -6,7 +6,7 @@ from khl_card import Card, ThemeTypes, CardMessage
 from khl_card.accessory import Image, Kmarkdown
 from khl_card.modules import Container, Section
 
-from .handler import init_map, draw_map
+from .draw_map import init_map, draw_map, get_full_map
 from ...config.path import RESOURCE_BASE_PATH
 from ...utils.alias import get_match_alias
 
@@ -86,6 +86,20 @@ async def on_startup(bot: 'LittlePaimon'):
                 await msg.reply(result.build())
             else:
                 url = await bot.client.create_asset(result)
+                await msg.reply(url, type=MessageTypes.IMG)
+
+    @bot.my_command('material_map_full', aliases=['材料地图'])
+    async def material_map_full(msg: Message, *material: str):
+        if len(material) == 0:
+            await msg.reply('请给要查询的材料给小派蒙哦~')
+        else:
+            await msg.reply(f'开始查找{"、".join(material)}的资源点，请稍候...')
+            result = await get_full_map(list(material), '提瓦特')
+            if isinstance(result, CardMessage):
+                await msg.reply(result.build())
+            else:
+                result.save('Temp/material_map_full.png')
+                url = await bot.client.create_asset('Temp/material_map_full.png')
                 await msg.reply(url, type=MessageTypes.IMG)
 
     @bot.command('match', regex=r'^(?P<index>\d+)$')

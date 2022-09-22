@@ -1,5 +1,6 @@
 import logging
 import math
+from typing import List
 
 from PIL import Image, ImageOps, ImageFile
 from khl_card import CardMessage, Card, ThemeTypes
@@ -7,6 +8,7 @@ from khl_card.accessory import Kmarkdown
 from khl_card.modules import Section
 
 from .genshin_map import models, request, utils, img
+from .genshin_map.models import XYPoint
 from ...config.path import RESOURCE_BASE_PATH
 from ...utils import requests
 from ...utils.files import load_image
@@ -104,14 +106,14 @@ async def draw_map(name: str, map_: str):
     total_img.paste(map_img, (48, total_img.height - 60 - map_img.height))
     icon = await requests.get_img(resource.icon, size=(300, 300))
     total_img.paste(icon, (100, 100))
-    total_img.text(f'「{name}」', 457, 147, fm.get('SourceHanSerifCN-Bold.otf', 72), 'white')
+    total_img.text(f'「{name}」', 454, 145, fm.get('SourceHanSerifCN-Bold.otf', 72), 'white')
     info = await requests.get(f'https://info.minigg.cn/materials?query={name}')
     info = info.json()
     des = ''
     if 'description' in info:
         des += info['description'].strip('\n')
     if 'source' in info:
-        des += '\n推荐采集地点：' + '，'.join(info['source'])
+        des += '\n推荐采集地点：' + '，'.join(info['source']).replace('推荐：', '')
     if des:
         total_img.text_box(des.replace('\n', '^'), (482, 1010), (281, 520), fm.get('SourceHanSansCN-Bold.otf', 30),
                            '#3c3c3c')
@@ -119,3 +121,62 @@ async def draw_map(name: str, map_: str):
                    fm.get('bahnschrift_bold', 36, 'Bold'), '#3c3c3c', align='center')
     total_img.save(RESOURCE_BASE_PATH / 'genshin_map' / 'results' / f'{map_}_{name}.png')
     return RESOURCE_BASE_PATH / 'genshin_map' / 'results' / f'{map_}_{name}.png'
+
+
+async def get_full_map(names: List[str], map_: str):
+    map_id = models.MapID[map_name_reverse[map_]]
+    maps = await request.get_maps(map_id)
+    labels = await request.get_labels(map_id)
+    resources = []
+    resources_not = []
+    resources_points = []
+    childs = [child for label in labels for child in label.children]
+    for name in names:
+        if res_filter := list(filter(lambda x: x.name == name, childs)):
+            resources.append(res_filter[0])
+        else:
+            resources_not.append(name)
+    if not resources:
+        return CardMessage(Card(Section(Kmarkdown(f'未查找到材料 **{"、".join(names)}**')), theme=ThemeTypes.NONE))
+    points = await request.get_points(map_id)
+    for resource in resources:
+        if points_ := utils.convert_pos(utils.get_points_by_id(resource.id, points), maps.detail.origin):
+            resources_points.append(points_)
+        else:
+            resources_not.append(resource.name)
+    if not resources_points:
+        return CardMessage(Card(Section(Kmarkdown(f'{map_}未查找到材料{"、".join(names)}，请尝试其他地图')), theme=ThemeTypes.NONE))
+    map_img = await load_image(RESOURCE_BASE_PATH / 'genshin_map' / 'results' / f'{map_id.name}.png')
+    box_icon = await load_image(RESOURCE_BASE_PATH / 'genshin_map' / 'point_box.png')
+    i = 0
+    max_point = XYPoint(x=0, y=0)
+    min_point = XYPoint(x=16384, y=12288)
+    for points in resources_points:
+        resource_icon = box_icon.copy()
+        resource_icon.alpha_composite(await requests.get_img(resources[i].icon, size=(90, 90)), (28, 15))
+        resource_icon = resource_icon.resize((48, 48), Image.ANTIALIAS)
+        if len(points) >= 3:
+            group_point = img.k_means_points(points, 16000)
+        else:
+            x1_temp = int(points[0].x) - 16000
+            x2_temp = int(points[0].x) + 16000
+            y1_temp = int(points[0].y) - 16000
+            y2_temp = int(points[0].y) + 16000
+            group_point = [(
+                models.XYPoint(x1_temp, y1_temp),
+                models.XYPoint(x2_temp, y2_temp),
+                points)]
+        lt_point = group_point[0][0]
+        rb_point = group_point[0][1]
+        min_point = XYPoint(x=min(min_point.x, lt_point.x), y=min(min_point.y, lt_point.y))
+        max_point = XYPoint(x=max(max_point.x, rb_point.x), y=max(max_point.y, rb_point.y))
+        for point in group_point[0][2]:
+            point_trans = (int(point.x), int(point.y))
+            map_img.paste(resource_icon, (point_trans[0] - 24, point_trans[1] - 48), resource_icon)
+        i += 1
+    map_img = map_img.crop((int(min_point.x) - 50, int(min_point.y) - 50, int(max_point.x) + 50, int(max_point.y) + 50))
+    if resources_not:
+        return CardMessage(Card(Section(Kmarkdown(f'{map_}未找到材料{"、".join(resources_not)}，请尝试其他地图')), theme=ThemeTypes.NONE))
+
+    else:
+        return map_img
