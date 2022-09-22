@@ -1,11 +1,13 @@
 import time
 from typing import TYPE_CHECKING, Dict, List
 
-from khl import Message
-from khl_card import Card, ThemeTypes
+from khl import Message, MessageTypes
+from khl_card import Card, ThemeTypes, CardMessage
 from khl_card.accessory import Image, Kmarkdown
 from khl_card.modules import Container, Section
 
+from .handler import init_map, draw_map
+from ...config.path import RESOURCE_BASE_PATH
 from ...utils.alias import get_match_alias
 
 if TYPE_CHECKING:
@@ -27,6 +29,8 @@ wait_to_match: Dict[str, WaitInfo] = {}
 
 
 async def on_startup(bot: 'LittlePaimon'):
+    await init_map()
+
     # noinspection PyShadowingBuiltins
     @bot.command_info('查看某日开放材料刷取的角色和武器', '<今天|周几>材料')
     @bot.command('daily_material',
@@ -64,6 +68,25 @@ async def on_startup(bot: 'LittlePaimon'):
                 Container(Image('https://static.cherishmoon.fun/LittlePaimon/DailyMaterials/周三周六.jpg')),
                 theme=ThemeTypes.NONE
             ).build()])
+
+    @bot.my_command('material_map', aliases=['材料图鉴'])
+    async def material_map(msg: Message, material: str = None, genshin_map: str = None):
+        if genshin_map is None:
+            genshin_map = '提瓦特'
+        elif genshin_map not in {'提瓦特', '层岩巨渊', '渊下宫'}:
+            await msg.reply('地图名称有误，请在【提瓦特、层岩巨渊、渊下宫】中选择')
+            return
+        if (file_path := RESOURCE_BASE_PATH / 'genshin_map' / 'results' / f'{genshin_map}_{material}.png').exists():
+            url = await bot.client.create_asset(file_path)
+            await msg.reply(url, type=MessageTypes.IMG)
+        else:
+            await msg.ctx.channel.send(f'开始查找 **{material}** 的资源点，请稍候...')
+            result = await draw_map(material, genshin_map)
+            if isinstance(result, CardMessage):
+                await msg.reply(result.build())
+            else:
+                url = await bot.client.create_asset(result)
+                await msg.reply(url, type=MessageTypes.IMG)
 
     @bot.command('match', regex=r'^(?P<index>\d+)$')
     async def match(msg: Message, index: int):

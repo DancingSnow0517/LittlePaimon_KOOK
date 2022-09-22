@@ -1,4 +1,4 @@
-khl.py>=0.3.2
+khl.py>=0.3.3
 colorlog>=6.6.0
 colorama>=0.4.5
 pydantic>=1.9.2
