@@ -6,12 +6,22 @@ from khl_card import Card, ThemeTypes, CardMessage
 from khl_card.accessory import Image, Kmarkdown
 from khl_card.modules import Container, Section
 
+from .draw_daily_material import get_daily_material, draw_material
 from .draw_map import init_map, draw_map, get_full_map
 from ...config.path import RESOURCE_BASE_PATH
 from ...utils.alias import get_match_alias
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
+
+days_cn = {
+    '1': '周一',
+    '2': '周二',
+    '3': '周三',
+    '4': '周四',
+    '5': '周五',
+    '6': '周六',
+}
 
 
 class WaitInfo:
@@ -42,32 +52,17 @@ async def on_startup(bot: 'LittlePaimon'):
             day = str(int(time.strftime("%w")) + 1)
         elif r_day in ['后日', '后天']:
             day = str(int(time.strftime("%w")) + 2)
-        elif r_day in ['周一', '周四']:
-            day = '1'
-        elif r_day in ['周二', '周五']:
-            day = '2'
-        elif r_day in ['周三', '周六']:
-            day = '3'
+        elif r_day == '周日':
+            await msg.reply('周日所有材料都可以刷哦!')
+            return
         else:
             day = '0'
-
         if day == '0':
             await msg.reply('周日所有材料都可以刷哦!')
-        elif day in ['1', '4']:
-            await msg.reply([Card(
-                Container(Image('https://static.cherishmoon.fun/LittlePaimon/DailyMaterials/周一周四.jpg')),
-                theme=ThemeTypes.NONE
-            ).build()])
-        elif day in ['2', '5']:
-            await msg.reply([Card(
-                Container(Image('https://static.cherishmoon.fun/LittlePaimon/DailyMaterials/周二周五.jpg')),
-                theme=ThemeTypes.NONE
-            ).build()])
         else:
-            await msg.reply([Card(
-                Container(Image('https://static.cherishmoon.fun/LittlePaimon/DailyMaterials/周三周六.jpg')),
-                theme=ThemeTypes.NONE
-            ).build()])
+            img = await draw_material(days_cn[day])
+            img.save('Temp/daily_material.png')
+            await msg.reply(await bot.client.create_asset('Temp/daily_material.png'), type=MessageTypes.IMG)
 
     @bot.my_command('material_map', aliases=['材料图鉴'])
     async def material_map(msg: Message, material: str = None, genshin_map: str = None):
@@ -183,3 +178,5 @@ async def on_startup(bot: 'LittlePaimon'):
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>角色材料)(?P<name2>\w*)', '角色材料', '角色')
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>收益曲线)(?P<name2>\w*)', '收益曲线', '角色')
     create_wiki_matcher(r'(?P<name1>\w*)(?P<type>参考面板)(?P<name2>\w*)', '参考面板', '角色')
+
+    bot.task.add_cron(hour=7, timezone='Asia/Shanghai')(get_daily_material)

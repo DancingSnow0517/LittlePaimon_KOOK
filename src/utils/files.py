@@ -59,21 +59,9 @@ async def load_image(
         if path.exists():
             img = Image.open(path)
         elif path.name.startswith(('UI_', 'Skill_')):
-            try:
-                img = await requests.get_img(f'https://enka.network/ui/{path.name}', headers=headers, save_path=path,
-                                             follow_redirects=True)
-            except Exception as e:
-                try:
-                    img = await requests.get_img(f'https://file.minigg.icu/genshin/ui/{path.name}', headers=headers,
-                                                 save_path=path, follow_redirects=True)
-                except Exception as e:
-                    raise FileNotFoundError(f'{path} not found') from e
+            img = await requests.download_icon(path.name, headers=headers, save_path=path, follow_redirects=True)
         else:
-            try:
-                p = path.__str__().replace('\\', '/')
-                img = await requests.get_img(f'http://img.genshin.cherishmoon.fun/{p}', save_path=path)
-            except Exception as e:
-                raise FileNotFoundError(f'{path} not found') from e
+            raise FileNotFoundError(f'{path} not found')
         cache_image[str(path)] = img
     if mode:
         img = img.convert(mode)
