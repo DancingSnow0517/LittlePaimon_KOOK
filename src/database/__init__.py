@@ -2,7 +2,7 @@ import logging
 
 from tortoise import Tortoise
 
-from ..config.path import GENSHIN_DB_PATH, GENSHIN_VOICE_DB_PATH
+from ..config.path import GENSHIN_DB_PATH, GENSHIN_VOICE_DB_PATH, GENSHIN_SUBSCRIPTION_DB_PATH
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +15,10 @@ DATA_BASE = {
         "genshin_voice": {
             "engine": "tortoise.backends.sqlite",
             "credentials": {"file_path": GENSHIN_VOICE_DB_PATH}
+        },
+        "subscription": {
+            "engine": "tortoise.backends.sqlite",
+            "credentials": {"file_path": GENSHIN_SUBSCRIPTION_DB_PATH}
         }
     },
     "apps": {
@@ -26,6 +30,10 @@ DATA_BASE = {
         "genshin_voice": {
             "models": ["src.database.models.genshin_voice"],
             "default_connection": "genshin_voice"
+        },
+        "subscription": {
+            "models": ["src.database.models.subscription"],
+            "default_connection": "subscription"
         }
     }
 }

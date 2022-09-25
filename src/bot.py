@@ -16,7 +16,7 @@ from khl_card import Card
 from . import panels
 from .api.command import CommandInfoManager
 from .api.panel import registered_panel, ClickablePanel
-from .database import connect
+from .database import connect, disconnect
 from .panels import MainPanel
 from .utils import requests
 from .utils.browser import install_browser
@@ -96,6 +96,10 @@ def main():
             await func(bot)
 
         log.info('插件加载完成。共 %d 个', len(modules))
+
+    @bot.on_shutdown
+    async def on_shutdown(_: LittlePaimon):
+        await disconnect()
 
     @bot.command_info('小派蒙的帮助信息', '直接 !!help 即可。或 !!help [命令名字] 来查看具体命令用法')
     @bot.my_command('help', aliases=['帮助'])

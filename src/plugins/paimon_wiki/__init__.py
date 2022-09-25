@@ -92,6 +92,8 @@ async def on_startup(bot: 'LittlePaimon'):
     async def material_map_full(msg: Message, *material: str):
         if len(material) == 0:
             await msg.reply('请给要查询的材料给小派蒙哦~')
+        if len(material) > 3:
+            material = material[:3]
         else:
             await msg.reply(f'开始查找{"、".join(material)}的资源点，请稍候...')
             result = await get_full_map(list(material), '提瓦特')

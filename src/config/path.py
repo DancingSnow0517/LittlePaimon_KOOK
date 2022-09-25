@@ -41,4 +41,5 @@ DATABASE_PATH.mkdir(parents=True, exist_ok=True)
 
 GENSHIN_DB_PATH = DATABASE_PATH / 'genshin.db'
 GENSHIN_VOICE_DB_PATH = DATABASE_PATH / 'genshin_voice.db'
+GENSHIN_SUBSCRIPTION_DB_PATH = DATABASE_PATH / 'genshin_subscription.db'
 

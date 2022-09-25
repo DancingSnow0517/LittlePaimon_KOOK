@@ -1,0 +1,56 @@
+{
+    "current_resin": 73,
+    "max_resin": 160,
+    "resin_recovery_time": "41572",
+    "finished_task_num": 4,
+    "total_task_num": 4,
+    "is_extra_task_reward_received": true,
+    "remain_resin_discount_num": 0,
+    "resin_discount_num_limit": 3,
+    "current_expedition_num": 5,
+    "max_expedition_num": 5,
+    "expeditions": [
+        {
+            "avatar_side_icon": "https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/UI_AvatarIcon_Side_Ambor.png",
+            "status": "Ongoing",
+            "remained_time": "46839"
+        },
+        {
+            "avatar_side_icon": "https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/UI_AvatarIcon_Side_Bennett.png",
+            "status": "Ongoing",
+            "remained_time": "28791"
+        },
+        {
+            "avatar_side_icon": "https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/UI_AvatarIcon_Side_Fischl.png",
+            "status": "Ongoing",
+            "remained_time": "28791"
+        },
+        {
+            "avatar_side_icon": "https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/UI_AvatarIcon_Side_Chongyun.png",
+            "status": "Ongoing",
+            "remained_time": "28791"
+        },
+        {
+            "avatar_side_icon": "https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/UI_AvatarIcon_Side_Keqing.png",
+            "status": "Ongoing",
+            "remained_time": "28791"
+        }
+    ],
+    "current_home_coin": 2000,
+    "max_home_coin": 2000,
+    "home_coin_recovery_time": "0",
+    "calendar_url": "",
+    "transformer": {
+        "obtained": true,
+        "recovery_time": {
+            "Day": 0,
+            "Hour": 0,
+            "Minute": 0,
+            "Second": 0,
+            "reached": true
+        },
+        "wiki": "https://bbs.mihoyo.com/ys/obc/content/1562/detail?bbs_presentation_style=no_header",
+        "noticed": false,
+        "latest_job_id": "0"
+    }
+}
