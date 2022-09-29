@@ -49,7 +49,7 @@ class CloudGenshinSub(Model):
     """token"""
     token: str = fields.CharField(max_length=255)
     """自动签到状态"""
-    auto_bbs: bool = fields.BooleanField(default=False)
+    auto_sign: bool = fields.BooleanField(default=False)
 
     class Meta:
         table = 'cloud_genshin_sub'

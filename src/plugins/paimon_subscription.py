@@ -1,13 +1,12 @@
 import datetime
-import json
 import logging
 import re
 from typing import TYPE_CHECKING
 
 from khl import Message, EventTypes, Event, GuildUser, User, MessageTypes
 from khl_card import CardMessage, Card, ThemeTypes
-from khl_card.modules import Section, Header, ActionGroup
 from khl_card.accessory import PlainText, Button, Kmarkdown
+from khl_card.modules import Section, Header, ActionGroup
 
 from .paimon_auto_bbs import mhy_bbs_sign
 from .paimon_daily_note.draw import draw_daily_note_card
@@ -35,9 +34,11 @@ async def on_startup(bot: 'LittlePaimon'):
         if 'guild_id' in event.body:
             guild_id = event.body['guild_id']
             user = GuildUser(guild_id=guild_id, _gate_=bot.client.gate, _lazy_loaded_=True, **event.body['user_info'])
+            target_id = event.body['target_id']
         else:
             guild_id = None
             user = User(_gate_=bot.client.gate, _lazy_loaded_=True, **event.body['user_info'])
+            target_id = None
 
         match = re.match(r'^sub_(?P<type>\w+)_(?P<uid>\d+)$', value)
         if match:
@@ -50,7 +51,15 @@ async def on_startup(bot: 'LittlePaimon'):
                 if (await MihoyoBBSSub.get_or_none(uid=uid)) is None:
                     await MihoyoBBSSub.create(user_id=user_id, uid=uid)
             elif type == 'cloud_genshin':
-                ...
+                if cloud_genshin := await CloudGenshinSub.get_or_none(uid=uid):
+                    if not cloud_genshin.auto_sign:
+                        cloud_genshin.auto_sign = True
+                        await cloud_genshin.save()
+                else:
+                    if isinstance(user, GuildUser) and target_id:
+                        await (await bot.client.fetch_public_channel(target_id)).send('请先绑定云原神token')
+                    else:
+                        await user.send('请先绑定云原神token')
         match = re.match(r'^unsub_(?P<type>\w+)_(?P<uid>\d+)$', value)
         if match:
             type = match.group('type')
@@ -62,7 +71,15 @@ async def on_startup(bot: 'LittlePaimon'):
                 if (mihoyo_bbs := await MihoyoBBSSub.get_or_none(uid=uid)) is not None:
                     await mihoyo_bbs.delete()
             elif type == 'cloud_genshin':
-                ...
+                if cloud_genshin := await CloudGenshinSub.get_or_none(uid=uid):
+                    if cloud_genshin.auto_sign:
+                        cloud_genshin.auto_sign = False
+                        await cloud_genshin.save()
+                else:
+                    if isinstance(user, GuildUser) and target_id:
+                        await (await bot.client.fetch_public_channel(target_id)).send('请先绑定云原神token')
+                    else:
+                        await user.send('请先绑定云原神token')
 
         if guild_id is not None:
             await update_message((await gen_sub_card(user_id)).build(), msg_id, user_id, bot.client.gate)
@@ -79,6 +96,10 @@ async def on_startup(bot: 'LittlePaimon'):
                     await (await bot.client.fetch_user(ck.user_id)).send(result)
                 except Exception as e:
                     log.info(f'给用户 {ck.user_id} 发送信息失败: {e}')
+
+    @bot.task.add_cron(hour=6, timezone='Asia/Shanghai')
+    async def sign_cloud_genshin():
+        ...
 
     @bot.task.add_interval(minutes=30, timezone='Asia/Shanghai')
     async def check():
@@ -123,6 +144,23 @@ async def gen_sub_card(user_id: str):
     for ck in cookies:
         modules.append(Section(Kmarkdown(f'UID: **{ck.uid}**')))
         modules.append(await get_buttons(ck.uid))
+
+    modules.append(Header('你的云原神：'))
+    cloud_genshin = await CloudGenshinSub.filter(user_id=user_id)
+    counter = 0
+    buttons = []
+    for cloud in cloud_genshin:
+        counter += 1
+        buttons.append(Button(PlainText(cloud.uid),
+                              value=f'sub_cloud_genshin_{cloud.uid}' if not cloud.auto_sign else f'unsub_cloud_genshin_{cloud.uid}',
+                              theme=ThemeTypes.DANGER if not cloud.auto_sign else ThemeTypes.SUCCESS,
+                              click='return-val'))
+        if counter == 4:
+            counter = 0
+            modules.append(ActionGroup(*buttons))
+            buttons.clear()
+    if counter != 0:
+        modules.append(ActionGroup(*buttons))
     cm = CardMessage(Card(
         Header('你的订阅：'),
         *modules,
@@ -134,7 +172,6 @@ async def gen_sub_card(user_id: str):
 async def get_buttons(uid: str):
     daily_note = await DailyNoteSub.get_or_none(uid=uid)
     mihoyo_bbs = await MihoyoBBSSub.get_or_none(uid=uid)
-    cloud_genshin = await CloudGenshinSub.get_or_none(uid=uid)
     return ActionGroup(
         Button(PlainText('实时便笺'),
                value=f'sub_daily_note_{uid}' if daily_note is None else f'unsub_daily_note_{uid}',
@@ -143,9 +180,5 @@ async def get_buttons(uid: str):
         Button(PlainText('米游社签到'),
                value=f'sub_mihoyo_bbs_{uid}' if mihoyo_bbs is None else f'unsub_mihoyo_bbs_{uid}',
                theme=ThemeTypes.DANGER if mihoyo_bbs is None else ThemeTypes.SUCCESS,
-               click='return-val'),
-        Button(PlainText('云原神'),
-               value=f'sub_cloud_genshin_{uid}' if cloud_genshin is None else f'unsub_cloud_genshin_{uid}',
-               theme=ThemeTypes.DANGER if cloud_genshin is None else ThemeTypes.SUCCESS,
                click='return-val')
     )
