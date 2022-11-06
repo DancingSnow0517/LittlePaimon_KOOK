@@ -16,7 +16,7 @@ async def on_startup(bot: 'LittlePaimon'):
     @bot.command_info('AI生成对应角色语音', '!!AI语音 [文字] [角色]')
     @bot.my_command('tts', aliases=['AI语音'])
     async def tts(msg: Message, text: str, char: str = '派蒙', noise: float = 0.667, length: float = 1.2):
-        if char not in CHARACTERS:
+        if char not in CHARACTERS and char != '派蒙':
             await msg.reply('不支持这个角色呢')
         else:
             voice = await get_voice(text, char, noise, length)

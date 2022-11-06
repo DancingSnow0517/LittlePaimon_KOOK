@@ -62,6 +62,10 @@ async def on_startup(bot: 'LittlePaimon'):
                         await (await bot.client.fetch_public_channel(target_id)).send('请先绑定云原神token')
                     else:
                         await user.send('请先绑定云原神token')
+            if guild_id is not None:
+                await update_message((await gen_sub_card(user_id)).build(), msg_id, user_id, bot.client.gate)
+            else:
+                await update_private_message((await gen_sub_card(user_id)).build(), msg_id, bot.client.gate)
         match = re.match(r'^unsub_(?P<type>\w+)_(?P<uid>\d+)$', value)
         if match:
             type = match.group('type')
@@ -82,11 +86,10 @@ async def on_startup(bot: 'LittlePaimon'):
                         await (await bot.client.fetch_public_channel(target_id)).send('请先绑定云原神token')
                     else:
                         await user.send('请先绑定云原神token')
-
-        if guild_id is not None:
-            await update_message((await gen_sub_card(user_id)).build(), msg_id, user_id, bot.client.gate)
-        else:
-            await update_private_message((await gen_sub_card(user_id)).build(), msg_id, bot.client.gate)
+            if guild_id is not None:
+                await update_message((await gen_sub_card(user_id)).build(), msg_id, user_id, bot.client.gate)
+            else:
+                await update_private_message((await gen_sub_card(user_id)).build(), msg_id, bot.client.gate)
 
     @bot.task.add_cron(hour=6, timezone='Asia/Shanghai')
     async def sign_bbs():
