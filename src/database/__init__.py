@@ -2,7 +2,7 @@ import logging
 
 from tortoise import Tortoise
 
-from ..config.path import GENSHIN_DB_PATH, GENSHIN_VOICE_DB_PATH, GENSHIN_SUBSCRIPTION_DB_PATH
+from src.utils.path import GENSHIN_DB_PATH, GENSHIN_VOICE_DB_PATH, GENSHIN_SUBSCRIPTION_DB_PATH
 
 log = logging.getLogger(__name__)
 

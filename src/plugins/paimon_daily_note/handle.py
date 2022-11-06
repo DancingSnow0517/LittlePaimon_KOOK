@@ -12,6 +12,9 @@ async def handle_ssbq(player: Player):
     if isinstance(data, str):
         log.info(f'原神实时便签: ➤ 用户 {player.user_id} UID {player.uid} 获取数据失败, {data}')
         return f'{player.uid}{data}\n'
+    elif data['retcode'] == 1034:
+        log.info(f'原神实时便签: ➤ 用户 {player.user_id} UID {player.uid}, 获取数据失败，状态码为1034，疑似验证码')
+        return f'{player.uid}获取数据失败，疑似遇米游社验证码阻拦，请稍后再试\n'
     elif data['retcode'] != 0:
         log.info(
             f'原神实时便签: ➤ 用户 {player.user_id} UID {player.uid}, 获取数据失败，code为 {data["retcode"]}， msg为 {data["message"]}')

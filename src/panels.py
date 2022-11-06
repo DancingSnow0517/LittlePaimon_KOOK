@@ -262,11 +262,10 @@ class AIVoicePanel(ClickablePanel):
     def get_panel() -> CardMessage:
         return CardMessage(Card(
             Header('AI语音命令'),
-            Section(Kmarkdown('**AI语音**\n!!AI语音 [文字] [角色] <noise> <noisew> <length>\n'
+            Section(Kmarkdown('**AI语音**\n!!AI语音 [文字] [角色] <noise> <length>\n'
                               '其中 `<>` 中的是可选参数\n'
                               '**参数说明**\n'
                               '**noise**: 可用于控制感情等变化程度。 默认值：**0.667**\n'
-                              '**noisew**: 可用于控制音素发音长度变化程度。 默认值：**0.8**\n'
                               '**length**: 可用于控制整体语速。 默认值：**1.2**\n'
                               '---\n'
                               '这些参数可以自行组合，找到合适的效果')),

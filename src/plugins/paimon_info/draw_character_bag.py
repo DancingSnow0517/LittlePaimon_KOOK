@@ -3,7 +3,7 @@ import math
 from typing import List
 
 from .draw_player_card import draw_weapon_icon, get_avatar
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...database.models.character import Character
 from ...database.models.player_info import Player, PlayerInfo
 from ...utils.alias import get_chara_icon
@@ -188,7 +188,7 @@ async def draw_chara_bag(player: Player, info: PlayerInfo, characters: List[Char
     # 签名和uid
     if info.signature:
         img.text(info.signature, 165, 116, fm.get('hywh', 32), '#252525')
-        nickname_length = img.text_length(info.nickname, fm.get('hywh', 40))
+        nickname_length = img.text_length(info.nickname, fm.get('hywh', 48))
         img.text(f'UID{player.uid}', 166 + nickname_length + 36, 58, fm.get('bahnschrift_regular', 48, 'Regular'),
                  '#252525')
     else:

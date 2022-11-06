@@ -1,6 +1,6 @@
 import math
 
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...database.models.character import Character
 from ...utils import requests
 from ...utils.files import load_image

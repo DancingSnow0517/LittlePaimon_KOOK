@@ -200,12 +200,15 @@ class MihoyoBBSCoin:
             req = await requests.post(url=bbs_Signurl, json={'gids': i['id']}, headers=header)
             data = req.json()
             if data['retcode'] != 0:
+                if data['retcode'] != 1034:
+                    self.is_valid = False
                 self.is_valid = False
                 self.state = 'Cookie已失效' if data['retcode'] in [-100,
-                                                                   10001] else f"出错了:{data['retcode']} {data['message']}"
+                                                                   10001] else f"出错了:{data['retcode']} {data['message']}" if \
+                    data['retcode'] != 1034 else '疑似遇到验证码'
                 log.info(f'米游币自动获取: ➤➤ {self.state}')
-                return self.state
-            await asyncio.sleep(random.randint(3, 6))
+                return f'讨论区签到：{self.state}'
+            await asyncio.sleep(random.randint(15, 30))
         log.info('米游币自动获取: ➤➤ 讨论区签到完成')
         return '讨论区签到：完成！'
 
@@ -221,7 +224,7 @@ class MihoyoBBSCoin:
             data = req.json()
             if data['message'] == 'OK':
                 num_ok += 1
-            await asyncio.sleep(random.randint(3, 6))
+            await asyncio.sleep(random.randint(5, 10))
         log.info('米游币自动获取: ➤➤ 看帖任务完成')
         return f'浏览帖子：完成{str(num_ok)}个！'
 
@@ -244,7 +247,7 @@ class MihoyoBBSCoin:
             if data['message'] == 'OK':
                 num_ok += 1
             # 取消点赞
-            await asyncio.sleep(random.randint(2, 4))
+            await asyncio.sleep(random.randint(3, 6))
             req = await requests.post(url=bbs_Likeurl,
                                       headers=self.headers,
                                       json={
@@ -255,7 +258,7 @@ class MihoyoBBSCoin:
             if data['message'] == 'OK':
                 num_cancel += 1
         log.info('米游币自动获取: ➤➤ 点赞任务完成')
-        await asyncio.sleep(random.randint(3, 6))
+        await asyncio.sleep(random.randint(5, 10))
         return f'点赞帖子：完成{str(num_ok)}个！'
 
     async def share_post(self):
@@ -272,9 +275,9 @@ class MihoyoBBSCoin:
             if data['message'] == 'OK':
                 return '分享帖子：完成！'
             else:
-                await asyncio.sleep(random.randint(4, 7))
+                await asyncio.sleep(random.randint(5, 10))
         log.info('米游币自动获取: ➤➤ 分享任务完成')
-        await asyncio.sleep(random.randint(3, 6))
+        await asyncio.sleep(random.randint(5, 10))
         return '分享帖子：完成！'
 
 

@@ -9,7 +9,7 @@ from khl_card.modules import Section
 
 from .genshin_map import models, request, utils, img
 from .genshin_map.models import XYPoint
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...utils import requests
 from ...utils.files import load_image
 from ...utils.image_util import PMImage, font_manager as fm

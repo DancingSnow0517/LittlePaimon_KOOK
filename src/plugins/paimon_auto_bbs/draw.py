@@ -2,7 +2,7 @@ import math
 from collections import defaultdict
 from enum import auto, IntEnum
 
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...utils.files import load_image
 from ...utils.image_util import PMImage, font_manager as fm
 

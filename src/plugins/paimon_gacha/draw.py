@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image, ImageDraw
 
 from .data_source import get_once_data, get_gacha_data
-from ...config.path import GACHA_RES
+from src.utils.path import GACHA_RES
 from ...utils.files import load_json
 from ...utils.image_util import font_manager
 

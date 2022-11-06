@@ -8,7 +8,7 @@ from khl_card.modules import Container, Section
 
 from .draw_daily_material import get_daily_material, draw_material
 from .draw_map import init_map, draw_map, get_full_map
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...utils.alias import get_match_alias
 
 if TYPE_CHECKING:
@@ -39,8 +39,6 @@ wait_to_match: Dict[str, WaitInfo] = {}
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    await init_map()
-
     # noinspection PyShadowingBuiltins
     @bot.command_info('查看某日开放材料刷取的角色和武器', '<今天|周几>材料')
     @bot.command('daily_material',
@@ -64,6 +62,7 @@ async def on_startup(bot: 'LittlePaimon'):
             img.save('Temp/daily_material.png')
             await msg.reply(await bot.client.create_asset('Temp/daily_material.png'), type=MessageTypes.IMG)
 
+    @bot.command_info('查看某个材料的介绍和采集点。', '!!材料图鉴 <材料名> [地图]')
     @bot.my_command('material_map', aliases=['材料图鉴'])
     async def material_map(msg: Message, material: str = None, genshin_map: str = None):
         if genshin_map is None:
@@ -83,6 +82,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 url = await bot.client.create_asset(result)
                 await msg.reply(url, type=MessageTypes.IMG)
 
+    @bot.command_info('查看多个材料大地图采集点。', '!!材料地图 <材料名列表>\n示例：!!材料地图 鸣草 鬼兜虫')
     @bot.my_command('material_map_full', aliases=['材料地图'])
     async def material_map_full(msg: Message, *material: str):
         if len(material) == 0:

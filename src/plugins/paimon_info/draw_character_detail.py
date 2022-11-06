@@ -1,7 +1,7 @@
 import logging
 
 from .damage_cal import get_role_dmg
-from ...config.path import RESOURCE_BASE_PATH, ENKA_RES
+from src.utils.path import RESOURCE_BASE_PATH, ENKA_RES
 from ...database.models.character import Character
 from ...utils.alias import get_chara_icon
 from ...utils.files import load_image

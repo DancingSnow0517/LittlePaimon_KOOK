@@ -1,7 +1,6 @@
-import asyncio
 from typing import Tuple, Optional, List
 
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...database.models.character import Character, Weapon
 from ...database.models.player_info import PlayerWorldInfo, Player, PlayerInfo
 from ...utils.alias import get_chara_icon
@@ -156,7 +155,7 @@ async def draw_player_card(player: Player, info: PlayerInfo, characters: List[Ch
     # 签名和uid
     if info.signature:
         img.text(info.signature, 223, 150, fm.get('hywh', 48), '#ddcdba')
-        nickname_length = img.text_length(info.nickname[:25], fm.get('hywh', 64))
+        nickname_length = img.text_length(info.nickname, fm.get('hywh', 64))
         img.text(f'UID{player.uid}', 223 + nickname_length + 29, 90, fm.get('hywh', 48), '#ddcdba')
     else:
         img.text(f'UID{player.uid}', 223, 150, fm.get('hywh', 48), '#ddcdba')
@@ -176,7 +175,7 @@ async def draw_player_card(player: Player, info: PlayerInfo, characters: List[Ch
     for i in range(len(home_data)):
         img.text(str(home_data[i]), (155 + 225 * (i % 4), 252 + 225 * (i % 4)), 961, fm.get('hywh', 48), 'black',
                  'center')
-    home_name = {'罗浮洞': 168, '翠黛峰': 392, '清琼岛': 617, '绘绮庭': 841}
+    home_name = {'罗浮洞': 168, '翠黛峰': 336, '清琼岛': 505, '绘绮庭': 673, '妙香林': 841}
     for name in home_name:
         img.text(name if name in info.home.unlock else '未解锁', home_name[name], 923, fm.get('hywh', 24),
                  (0, 0, 0, 153), 'center')

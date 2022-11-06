@@ -1,7 +1,7 @@
 import math
 from pathlib import Path
 
-from ...config.path import RESOURCE_BASE_PATH
+from src.utils.path import RESOURCE_BASE_PATH
 from ...utils import requests
 from ...utils.files import save_json, load_json, load_image
 from ...utils.image_util import PMImage, font_manager as fm

@@ -6,7 +6,7 @@ from PIL import ImageFont, Image, ImageDraw, ImageOps
 
 import matplotlib.pyplot as plt
 
-from ..config.path import FONTS_PATH
+from src.utils.path import FONTS_PATH
 
 
 class PMImage:

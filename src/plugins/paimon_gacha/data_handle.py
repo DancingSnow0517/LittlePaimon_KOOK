@@ -1,4 +1,4 @@
-from ...config.path import GACHA_SIM
+from src.utils.path import GACHA_SIM
 from ...utils.files import load_json, save_json
 
 

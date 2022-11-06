@@ -23,7 +23,12 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply('一次性最多抽 9 次十连')
             return
         pool = pool or '角色1'
-        result = await draw_gacha_img(msg.author.id, pool, num, msg.author.nickname)
+        try:
+            result = await draw_gacha_img(msg.author.id, pool, num, msg.author.nickname)
+        except IndexError:
+            result = '当前没有可以抽的卡池哦~请等待卡池开放'
+        except Exception as e:
+            result = f'抽卡发生错误:{e}'
         if isinstance(result, str):
             await msg.reply(result)
             return

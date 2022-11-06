@@ -9,7 +9,7 @@ from .alias import get_name_by_id
 from .files import load_json
 from .genshin_api import get_enka_data, get_mihoyo_private_data, get_mihoyo_public_data
 from .types import DataSourceType, CHARACTERS
-from ..config.path import JSON_DATA
+from src.utils.path import JSON_DATA
 from ..database.models.abyss_info import AbyssInfo
 from ..database.models.character import Character, Talents, Talent, CharacterProperty, Artifact, Artifacts
 from ..database.models.cookie import LastQuery, PrivateCookie
@@ -117,6 +117,9 @@ class GenshinInfoManager:
         data = await get_mihoyo_public_data(self.uid, self.user_id, 'player_card')
         if not isinstance(data, dict):
             return data
+        elif data['retcode'] == 1034:
+            log.info(f'原神信息: 更新 {self.uid} 的玩家数据时出错，状态码为1034，疑似验证码')
+            return '疑似遇米游社验证码阻拦，请稍后再试'
         elif data['retcode'] != 0:
             log.info(f'原神信息: 更新 {self.uid} 的玩家数据时出错，消息为 {data["message"]} ')
             return data['message']
@@ -171,7 +174,7 @@ class GenshinInfoManager:
             """如果角色不存在或者角色的更新时间在6小时前，则更新角色信息"""
             character = await Character.get_or_none(**query, data_source='enka')
             if not character or character.update_time < (datetime.datetime.now() - datetime.timedelta(hours=6)).replace(
-                    tzinfo=pytz.timezone('Asia/Shanghai')):
+                    tzinfo=pytz.timezone('UTC')):
                 await self.update_from_enka()
                 if character := await Character.get_or_none(**query, data_source='enka'):
                     log.info(f'原神角色面板: ➤➤角色: {name or character_id} 数据更新成功')
@@ -194,7 +197,7 @@ class GenshinInfoManager:
         await self.set_last_query()
         player_info = await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)
         if player_info is None or player_info.update_time is None or player_info.update_time < (
-                datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('Asia/Shanghai')):
+                datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('UTC')):
             result = await self.update_from_mihoyo()
             if result != '更新成功':
                 return result, []
@@ -211,7 +214,7 @@ class GenshinInfoManager:
         await self.set_last_query()
         player_info = await PlayerInfo.get_or_none(user_id=self.user_id, uid=self.uid)
         if player_info is None or player_info.update_time is None or player_info.update_time < (
-                datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('Asia/Shanghai')):
+                datetime.datetime.now() - datetime.timedelta(days=1)).replace(tzinfo=pytz.timezone('UTC')):
             result = await self.update_from_mihoyo()
             if result != '更新成功':
                 return result, None

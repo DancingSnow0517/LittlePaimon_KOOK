@@ -9,6 +9,7 @@ from khl_card.accessory import PlainText, Button, Kmarkdown
 from khl_card.modules import Section, Header, ActionGroup
 
 from .paimon_auto_bbs import mhy_bbs_sign
+from .paimon_cloud_genshin import sign
 from .paimon_daily_note.draw import draw_daily_note_card
 from ..database.models.cookie import PrivateCookie
 from ..database.models.subscription import DailyNoteSub, MihoyoBBSSub, CloudGenshinSub
@@ -22,7 +23,8 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.my_command('sub', aliases=['订阅'])
+    @bot.command_info('显示你的所有订阅信息', '!!订阅信息')
+    @bot.my_command('sub', aliases=['订阅信息', '订阅'])
     async def sub(msg: Message):
         await msg.reply((await gen_sub_card(msg.author.id)).build())
 
@@ -99,7 +101,13 @@ async def on_startup(bot: 'LittlePaimon'):
 
     @bot.task.add_cron(hour=6, timezone='Asia/Shanghai')
     async def sign_cloud_genshin():
-        ...
+        uid_list = await CloudGenshinSub.all()
+        for uid in uid_list:
+            msg = await sign(uid)
+            try:
+                await (await bot.client.fetch_user(uid.user_id)).send(msg)
+            except Exception as e:
+                log.info(f'云原神自动签到: UID{uid.uid} 发生错误 {e}')
 
     @bot.task.add_interval(minutes=30, timezone='Asia/Shanghai')
     async def check():

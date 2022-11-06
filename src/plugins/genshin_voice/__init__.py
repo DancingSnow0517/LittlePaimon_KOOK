@@ -7,7 +7,7 @@ from khl_card import CardMessage, Card, Paragraph, Section, Kmarkdown, Header
 
 from .handler import GuessVoiceManager
 from .resources import update_voice_resources
-from ...config.path import JSON_DATA
+from src.utils.path import JSON_DATA
 from ...database.models.genshin_voice import GuessVoiceRank
 from ...utils.files import load_json
 
@@ -76,7 +76,6 @@ async def on_startup(bot: 'LittlePaimon'):
         await msg.ctx.channel.send('开始更新原神语音资源，请稍等...')
         result = await update_voice_resources()
         await msg.ctx.channel.send(result)
-        ...
 
     async def get_rank(channel_id: str, days: int = 7):
         records = await GuessVoiceRank.filter(group_id=channel_id,

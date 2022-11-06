@@ -112,13 +112,13 @@ def mihoyo_headers(cookie, q='', b=None) -> dict:
     }
 
 
-def mihoyo_sign_headers(cookie: str) -> dict:
+def mihoyo_sign_headers(cookie: str, extra_headers: Optional[dict] = None) -> dict:
     """
     生成米游社签到headers
     :param cookie: cookie
     :return: headers
     """
-    return {
+    headers = {
         'User_Agent': 'Mozilla/5.0 (Linux; Android 12; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Version/4.0 Chrome/103.0.5060.129 Mobile Safari/537.36 miHoYoBBS/2.35.2',
         'Cookie': cookie,
@@ -131,6 +131,9 @@ def mihoyo_sign_headers(cookie: str) -> dict:
                    '=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon',
         'x-rpc-app_version': '2.35.2'
     }
+    if extra_headers:
+        headers.update(extra_headers)
+    return headers
 
 
 async def check_retcode(data: dict, cookie_info, cookie_type: str, user_id: str, uid: str) -> bool:
@@ -208,7 +211,7 @@ async def get_cookie(user_id: str, uid: str, check: bool = True, own: bool = Fal
         return None, ''
 
 
-async def get_bind_game_info(cookie: str) -> Optional[dict]:
+async def get_bind_game_info(cookie: str, b: bool = False) -> Optional[dict]:
     """
     通过cookie，获取米游社绑定的原神游戏信息
     :param cookie: cookie

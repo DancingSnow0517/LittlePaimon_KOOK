@@ -1,9 +1,9 @@
 import datetime
 
-from ...config.path import RESOURCE_BASE_PATH
-from ...database.models.abyss_info import AbyssInfo
-from ...utils.files import load_image
-from ...utils.image_util import PMImage, font_manager as fm
+from src.utils.path import RESOURCE_BASE_PATH
+from src.database.models.abyss_info import AbyssInfo
+from src.utils.files import load_image
+from src.utils.image_util import PMImage, font_manager as fm
 
 
 def datetime_to_cn(time: datetime.datetime) -> str:

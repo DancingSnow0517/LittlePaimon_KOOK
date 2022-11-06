@@ -5,7 +5,7 @@ from typing import Optional, Iterator, List, Literal, Dict
 from pydantic import BaseModel
 from tortoise import fields, Model
 
-from ...config.path import JSON_DATA
+from src.utils.path import JSON_DATA
 from ...utils.types import DataSourceType, ElementType, RegionType
 from ...utils.alias import get_name_by_id
 from ...utils.files import load_json
