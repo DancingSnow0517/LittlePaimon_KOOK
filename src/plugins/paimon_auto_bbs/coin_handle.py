@@ -205,7 +205,7 @@ class MihoyoBBSCoin:
                 self.is_valid = False
                 self.state = 'Cookie已失效' if data['retcode'] in [-100,
                                                                    10001] else f"出错了:{data['retcode']} {data['message']}" if \
-                    data['retcode'] != 1034 else '疑似遇到验证码'
+                    data['retcode'] != 1034 else '遇验证码阻拦'
                 log.info(f'米游币自动获取: ➤➤ {self.state}')
                 return f'讨论区签到：{self.state}'
             await asyncio.sleep(random.randint(15, 30))
@@ -259,7 +259,7 @@ class MihoyoBBSCoin:
                 num_cancel += 1
         log.info('米游币自动获取: ➤➤ 点赞任务完成')
         await asyncio.sleep(random.randint(5, 10))
-        return f'点赞帖子：完成{str(num_ok)}个！'
+        return f'点赞帖子：完成{str(num_ok)}个{"，遇验证码" if num_ok == 0 else ""}！'
 
     async def share_post(self):
         """

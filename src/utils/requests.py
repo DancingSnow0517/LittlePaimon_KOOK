@@ -119,12 +119,26 @@ async def download_icon(name: str,
     :param headers: 请求头
     :param save_path: 保存路径
     """
+    url = None
+    if name.startswith(('UI_EquipIcon', 'UI_RelicIcon')):
+        url = f'https://upload-bbs.mihoyo.com/game_record/genshin/equip/{name}'
+    elif name.startswith('UI_Talent'):
+        url = f'https://upload-bbs.mihoyo.com/game_record/genshin/constellation_icon/{name}'
+    elif name.startswith('UI_AvatarIcon'):
+        if name.endswith('UI_AvatarIcon_Side'):
+            url = f'https://upload-bbs.mihoyo.com/game_record/genshin/character_side_icon/{name}'
+        elif name.endswith('Card.png'):
+            url = f'https://upload-bbs.mihoyo.com/game_record/genshin/character_card_icon/{name}'
+        else:
+            url = f'https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/{name}'
     urls = [
+        url,
         f'https://file.microgg.cn/MiniGG/ui/{name}',
         f'https://api.ambr.top/assets/UI/{name}',
         f'https://enka.network/ui/{name}'
     ]
     for url in urls:
         with contextlib.suppress(Exception):
-            return await get_img(url=url, headers=headers, save_path=save_path, **kwargs)
+            if url is not None:
+                return await get_img(url=url, headers=headers, save_path=save_path, **kwargs)
     raise FileNotFoundError(f'{name}下载失败，请检查网络')

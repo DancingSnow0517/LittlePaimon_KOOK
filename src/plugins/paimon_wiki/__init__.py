@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import TYPE_CHECKING, Dict, List
 
 from khl import Message, MessageTypes
@@ -9,7 +10,9 @@ from khl_card.modules import Container, Section
 from .draw_daily_material import get_daily_material, draw_material
 from .draw_map import init_map, draw_map, get_full_map
 from src.utils.path import RESOURCE_BASE_PATH
+from .serenitea_pot.draw import draw_pot_materials, url_data, FURNITURE_DATA_PATH
 from ...utils.alias import get_match_alias
+from ...utils.files import save_json
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
@@ -97,6 +100,33 @@ async def on_startup(bot: 'LittlePaimon'):
             else:
                 result.save('Temp/material_map_full.png')
                 url = await bot.client.create_asset('Temp/material_map_full.png')
+                await msg.reply(url, type=MessageTypes.IMG)
+
+    @bot.admin_command('generate_map', aliases=['生成地图'])
+    async def generate_map(msg: Message):
+        await msg.reply('开始生成地图资源，这可能需要较长时间。')
+        result = await init_map()
+        await msg.reply(result)
+
+    @bot.my_command('pot_material', aliases=['摹本材料', '尘歌壶材料', '尘歌壶摹本材料'])
+    async def pot_material(msg: Message, share_id: str):
+        if not share_id.isdigit() or len(share_id) != 10:
+            await msg.reply('这个尘歌壶摹数不对哦，必须是十位数的数字')
+        else:
+            try:
+                code = int(share_id)
+                result = await draw_pot_materials(code, user_id=str(msg.author.id))
+            except Exception as e:
+                traceback.print_exception(e)
+                return
+
+            if isinstance(result, str):
+                await msg.reply(result, type=MessageTypes.IMG)
+            else:
+                result.save('Temp/pot_material.png')
+                url = await bot.client.create_asset('Temp/pot_material.png')
+                url_data[share_id] = url
+                save_json(url_data, FURNITURE_DATA_PATH)
                 await msg.reply(url, type=MessageTypes.IMG)
 
     @bot.command('match', regex=r'^(?P<index>\d+)$')

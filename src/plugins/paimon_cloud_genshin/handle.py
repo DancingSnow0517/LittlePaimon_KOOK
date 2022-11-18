@@ -20,7 +20,8 @@ async def get_cloud_genshin_info(user_id: str, uid: str):
 async def sign(uid: CloudGenshinSub):
     if await check_token(uid.uuid, uid.token):
         info = await get_info(uid.uuid, uid.token)
-        if info['data']['free_time']['free_time'] == 600:
+        print(info)
+        if info['data']['free_time']['free_time'] == info['data']['free_time']['free_time_limit']:
             msg = '云原神签到失败，免费时长已达上限'
         else:
             s = await get_notification(uid.uuid, uid.token)

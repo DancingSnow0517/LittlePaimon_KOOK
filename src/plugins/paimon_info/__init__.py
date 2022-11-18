@@ -110,8 +110,6 @@ async def on_startup(bot: 'LittlePaimon'):
                     traceback.print_exc()
                     log.error(f'原神角色背包: ➤➤➤ 制图出错: {e}')
 
-
-
     @bot.command_info('随机角色同人图+角色信息卡片', '!!角色图 [角色名]')
     @bot.my_command('ysc', aliases=['角色图', '角色卡片'])
     async def ysc(msg: Message, *characters: str):

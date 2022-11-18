@@ -36,6 +36,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 if ck.user_id != msg.author.id:
                     await msg.reply(f'UID: {ck.uid} 不属于你')
                     cookies.remove(ck)
+        await msg.ctx.channel.send('米游社原神签到不维护，不保证成功！')
         for ck in cookies:
             if f'{ck.user_id}-{ck.uid}' in signing_list:
                 await msg.reply('你已经在执行签到任务中，请勿重复发送')

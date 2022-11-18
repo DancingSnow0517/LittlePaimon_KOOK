@@ -54,6 +54,7 @@ async def init_map():
             map_img.paste(anchor_icon, (int(point.x) - 32, int(point.y) - 64), anchor_icon)
         map_img.save(save_path)
         log.info(f'原神地图: {map_name[map_id.name]} 地图初始化完成')
+    return f'地图资源生成完成，目前有{"、".join(list(map_name_reverse.keys()))}地图。'
 
 
 async def draw_map(name: str, map_: str):

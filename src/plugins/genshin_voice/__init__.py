@@ -26,8 +26,6 @@ for char_id in alias_file['角色']:
     chars[alias_file['角色'][char_id][0]] = alias_file['角色'][char_id]
     aliases += alias_file['角色'][char_id]
 
-print(aliases)
-
 
 async def on_startup(bot: 'LittlePaimon'):
     manager = GuessVoiceManager()
