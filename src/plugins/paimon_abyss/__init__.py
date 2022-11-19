@@ -7,6 +7,7 @@ from khl import Message, MessageTypes
 from .draw_abyss_card import draw_abyss_card
 from .abyss_statistics import get_statistics
 from .youchuang import draw_team
+from ...api.interface import CommandGroups
 from ...database.models.cookie import PrivateCookie
 from ...utils.genshin import GenshinInfoManager
 
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('查看 本期|上期 的深渊战报', '!!深渊信息 [1|2] [UID]\n1: 这期深渊 2: 上期深渊')
+    @bot.command_info('查看 本期|上期 的深渊战报\n1: 这期深渊 2: 上期深渊', '!!深渊信息 [1|2] [UID]', [CommandGroups.ABYSS])
     @bot.my_command('sy', aliases=['深渊战报', '深渊信息'])
     async def sy(msg: Message, abyss_index: int = 1, uid: str = None):
         log.info('原神深渊战报: 开始执行')
@@ -55,7 +56,7 @@ async def on_startup(bot: 'LittlePaimon'):
                     traceback.print_exc()
                     log.error(f'原神深渊战报: ➤➤➤ 制图出错: {e}')
 
-    @bot.command_info('查看本群深渊统计，仅群可用', '!!深渊统计')
+    @bot.command_info('查看本群深渊统计，仅群可用', '!!深渊统计', [CommandGroups.ABYSS])
     @bot.my_command('abyss_stat', aliases=['深渊统计', '深渊群数据', '深渊群排行'])
     async def abyss_stat(msg: Message):
         try:
@@ -70,7 +71,7 @@ async def on_startup(bot: 'LittlePaimon'):
             traceback.print_exc()
             await msg.reply(f'制作深渊统计时出错：{e}')
 
-    @bot.command_info('查看深渊配队推荐，数据来源于游创工坊', '!!深渊配队')
+    @bot.command_info('查看深渊配队推荐，数据来源于游创工坊', '!!深渊配队', [CommandGroups.ABYSS])
     @bot.my_command('abyss_team', aliases=['深渊配队', '配队推荐', '深渊阵容'])
     async def abyss_team(msg: Message):
         try:

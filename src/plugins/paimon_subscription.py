@@ -11,6 +11,7 @@ from khl_card.modules import Section, Header, ActionGroup
 from .paimon_auto_bbs import mhy_bbs_sign
 from .paimon_cloud_genshin import sign
 from .paimon_daily_note.draw import draw_daily_note_card
+from ..api.interface import CommandGroups
 from ..database.models.cookie import PrivateCookie
 from ..database.models.subscription import DailyNoteSub, MihoyoBBSSub, CloudGenshinSub
 from ..utils.genshin_api import get_mihoyo_private_data
@@ -23,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('显示你的所有订阅信息', '!!订阅信息')
+    @bot.command_info('显示你的所有订阅信息', '!!订阅信息', [CommandGroups.SUBSCRIPTION])
     @bot.my_command('sub', aliases=['订阅信息', '订阅'])
     async def sub(msg: Message):
         await msg.reply((await gen_sub_card(msg.author.id)).build())

@@ -5,6 +5,7 @@ from khl import Message, MessageTypes
 
 from .coin_handle import mhy_bbs_coin
 from .sign_handle import mhy_bbs_sign, init_reward_list
+from ...api.interface import CommandGroups
 from ...database.models.cookie import PrivateCookie
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ coin_getting_list = []
 async def on_startup(bot: 'LittlePaimon'):
     await init_reward_list()
 
-    @bot.command_info('执行米游社签到操作', '!!米游社签到 [UID]')
+    @bot.command_info('执行米游社签到操作', '!!米游社签到 [UID]', [CommandGroups.MIHOYO_BBS])
     @bot.my_command('sign', aliases=['mys签到', '米游社签到', 'mys自动签到', '米游社自动签到'])
     async def sign(msg: Message, uid: str = None):
         if uid is None:
@@ -48,7 +49,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 signing_list.remove(f'{ck.user_id}-{ck.uid}')
                 await msg.reply(result)
 
-    @bot.command_info('执行米游币任务操作', '!!米游币获取 [UID]')
+    @bot.command_info('执行米游币任务操作', '!!米游币获取 [UID]', [CommandGroups.MIHOYO_BBS])
     @bot.my_command('get_coin', aliases=['myb获取', '米游币获取', 'myb自动获取', '米游币自动获取', '米游币任务'])
     async def get_coin(msg: Message, uid: str = None):
         if uid is None:

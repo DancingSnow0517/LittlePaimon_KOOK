@@ -9,10 +9,11 @@ from khl_card.modules import Container, Section
 
 from .draw_daily_material import get_daily_material, draw_material
 from .draw_map import init_map, draw_map, get_full_map
-from src.utils.path import RESOURCE_BASE_PATH
 from .serenitea_pot.draw import draw_pot_materials, url_data, FURNITURE_DATA_PATH
+from ...api.interface import CommandGroups
 from ...utils.alias import get_match_alias
 from ...utils.files import save_json
+from ...utils.path import RESOURCE_BASE_PATH
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
@@ -43,7 +44,7 @@ wait_to_match: Dict[str, WaitInfo] = {}
 
 async def on_startup(bot: 'LittlePaimon'):
     # noinspection PyShadowingBuiltins
-    @bot.command_info('查看某日开放材料刷取的角色和武器', '<今天|周几>材料')
+    @bot.command_info('查看某日开放材料刷取的角色和武器', '<今天|周几>材料', [CommandGroups.WIKI])
     @bot.command('daily_material',
                  regex=r'^(?P<day>周[一二三四五六日]|[今明后]天|[今明后]日|现在)(?P<type>天赋|武器|角色|)材料$')
     async def daily_material(msg: Message, r_day: str, r_type: str):
@@ -65,7 +66,7 @@ async def on_startup(bot: 'LittlePaimon'):
             img.save('Temp/daily_material.png')
             await msg.reply(await bot.client.create_asset('Temp/daily_material.png'), type=MessageTypes.IMG)
 
-    @bot.command_info('查看某个材料的介绍和采集点。', '!!材料图鉴 <材料名> [地图]')
+    @bot.command_info('查看某个材料的介绍和采集点。', '!!材料图鉴 <材料名> [地图]', [CommandGroups.WIKI])
     @bot.my_command('material_map', aliases=['材料图鉴'])
     async def material_map(msg: Message, material: str = None, genshin_map: str = None):
         if genshin_map is None:
@@ -85,7 +86,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 url = await bot.client.create_asset(result)
                 await msg.reply(url, type=MessageTypes.IMG)
 
-    @bot.command_info('查看多个材料大地图采集点。', '!!材料地图 <材料名列表>\n示例：!!材料地图 鸣草 鬼兜虫')
+    @bot.command_info('查看多个材料大地图采集点。\n示例：!!材料地图 鸣草 鬼兜虫', '!!材料地图 <材料名列表>', [CommandGroups.WIKI])
     @bot.my_command('material_map_full', aliases=['材料地图'])
     async def material_map_full(msg: Message, *material: str):
         if len(material) == 0:
@@ -108,7 +109,7 @@ async def on_startup(bot: 'LittlePaimon'):
         result = await init_map()
         await msg.reply(result)
 
-    @bot.command_info(desc='查看尘歌壶摹本所需要的材料总览', usage='!!尘歌壶材料 [摹本ID]')
+    @bot.command_info('查看尘歌壶摹本所需要的材料总览', '!!尘歌壶材料 [摹本ID]', [CommandGroups.WIKI])
     @bot.my_command('pot_material', aliases=['摹本材料', '尘歌壶材料', '尘歌壶摹本材料'])
     async def pot_material(msg: Message, share_id: str):
         if not share_id.isdigit() or len(share_id) != 10:
@@ -150,7 +151,7 @@ async def on_startup(bot: 'LittlePaimon'):
 
     def create_wiki_matcher(pattern: str, help_fun: str, help_name: str):
         # noinspection PyShadowingBuiltins
-        @bot.command_info(f'查看该{help_name}的{help_fun}', usage=f'<{help_name}名> {help_fun}')
+        @bot.command_info(f'查看该{help_name}的{help_fun}', f'<{help_name}名> {help_fun}', [CommandGroups.WIKI])
         @bot.command(help_fun, regex=pattern)
         async def _(msg: Message, r_name1: str = None, r_type: str = '角色', r_name2: str = None):
             name = r_name1 or r_name2

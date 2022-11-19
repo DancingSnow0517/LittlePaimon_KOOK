@@ -8,6 +8,7 @@ from khl_card.modules import Container, Header, Section, Divider, Context
 
 from .data_handle import load_user_data
 from .draw import draw_gacha_img
+from ...api.interface import CommandGroups
 from ...utils.message_util import on_exception
 
 if TYPE_CHECKING:
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('原神模拟抽卡，卡池有 `常驻` `角色1` `角色2` `武器`', '抽[数量]十连[卡池]')
+    @bot.command_info('原神模拟抽卡，卡池有：常驻、角色1、角色2、武器', '抽[数量]十连[卡池]', [CommandGroups.GACHA])
     @bot.command('sim_gacha', regex=r'^抽(?P<num>\d*)十连(?P<pool>\S*)$')
     async def sim_gacha(msg: Message, num: str, pool):
         num = int(num) if num != '' and num.isdigit() else 1
@@ -49,7 +50,7 @@ async def on_startup(bot: 'LittlePaimon'):
     sim_gacha.on_exception(Exceptions.Handler.ArgLenNotMatched)(on_exception('模拟抽卡使用方法：抽[次数]十连[池子]'))
 
     # noinspection PyShadowingBuiltins
-    @bot.command_info('查看模拟抽卡记录', '!!模拟抽卡记录 [角色|武器]')
+    @bot.command_info('查看模拟抽卡记录', '!!模拟抽卡记录 [角色|武器]', [CommandGroups.GACHA])
     @bot.my_command('show_log', aliases=['模拟抽卡记录'])
     async def show_log(msg: Message, type: str = None):
         user_info = load_user_data(msg.author.id)

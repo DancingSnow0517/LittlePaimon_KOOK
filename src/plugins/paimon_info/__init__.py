@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING, Tuple, List
 
 from khl import Message, MessageTypes
 from khl_card import Card, ThemeTypes
-from khl_card.modules import Container
 from khl_card.accessory import Image
+from khl_card.modules import Container
 
-from src.plugins.paimon_abyss.draw_abyss_card import draw_abyss_card
 from .draw_character_bag import draw_chara_bag
 from .draw_character_card import draw_chara_card
 from .draw_character_detail import draw_chara_detail
 from .draw_player_card import draw_player_card
+from ...api.interface import CommandGroups
 from ...database.models.cookie import PrivateCookie
 from ...database.models.player_info import Player
 from ...utils import requests
@@ -29,7 +29,7 @@ running_ysa = []
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('查看原神个人信息卡片', '!!原神卡片 [UID]')
+    @bot.command_info('查看原神个人信息卡片', '!!原神卡片 [UID]', [CommandGroups.INFO])
     @bot.my_command('ys', aliases=['原神卡片', '个人卡片'])
     async def ys(msg: Message, uid: str = None):
         log.info('原神信息查询: 开始执行')
@@ -67,7 +67,7 @@ async def on_startup(bot: 'LittlePaimon'):
                     traceback.print_exc()
                     log.error(f'原神信息查询: ➤➤➤ 制图出错: {e}')
 
-    @bot.command_info('查看角色背包及练度排行', '!!角色背包 [UID]')
+    @bot.command_info('查看角色背包及练度排行', '!!角色背包 [UID]', [CommandGroups.INFO])
     @bot.my_command('ysa', aliases=['角色背包', '练度统计'])
     async def ysa(msg: Message, uid: str = None):
         log.info('原神角色背包: 开始执行')
@@ -110,7 +110,7 @@ async def on_startup(bot: 'LittlePaimon'):
                     traceback.print_exc()
                     log.error(f'原神角色背包: ➤➤➤ 制图出错: {e}')
 
-    @bot.command_info('随机角色同人图+角色信息卡片', '!!角色图 [角色名]')
+    @bot.command_info('随机角色同人图+角色信息卡片', '!!角色图 <角色名>', [CommandGroups.INFO])
     @bot.my_command('ysc', aliases=['角色图', '角色卡片'])
     async def ysc(msg: Message, *characters: str):
         log.info('原神角色卡片: 开始执行')
@@ -165,7 +165,7 @@ async def on_startup(bot: 'LittlePaimon'):
             )
             await msg.reply([card.build()])
 
-    @bot.command_info('查看指定角色的详细面板数据及伤害计算', '!!角色详情 [角色名]')
+    @bot.command_info('查看指定角色的详细面板数据及伤害计算', '!!角色详情 <角色名>', [CommandGroups.INFO])
     @bot.my_command('ysd', aliases=['角色详情', '角色信息', '角色面板'])
     async def ysd(msg: Message, *characters: str):
         log.info('原神角色面板: 开始执行')

@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Dict, List
 from khl import Message
 from khl_card import CardMessage, Card, Paragraph, Section, Kmarkdown, Header
 
+from src.utils.path import JSON_DATA
 from .handler import GuessVoiceManager
 from .resources import update_voice_resources
-from src.utils.path import JSON_DATA
+from ...api.interface import CommandGroups
 from ...database.models.genshin_voice import GuessVoiceRank
 from ...utils.files import load_json
 
@@ -49,7 +50,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 log.info(f'原神猜语音: ➤频道{msg.ctx.channel.id}猜语音游戏结束，答案为{char}，由{msg.author.id}猜对')
                 await msg.ctx.channel.send(f'恭喜 (met){msg.author.id}(met) 猜对，正确答案为 {char}')
 
-    @bot.command_info('开始原神猜语音游戏', '!!原神猜语音 [语言]')
+    @bot.command_info('开始原神猜语音游戏', '!!原神猜语音 [语言]', [CommandGroups.GAME])
     @bot.my_command('guess_voice', aliases=['原神猜语音'])
     async def guess_voice(msg: Message, lang: str = '中'):
         if lang not in langs:
@@ -63,12 +64,12 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.ctx.channel.send('即将发送一段语音，将在30秒后公布答案')
             await msg.ctx.channel.send(result.build())
 
-    @bot.command_info('查看近几天的原神猜语音排行榜', '!!猜语音排行榜 [天数]')
+    @bot.command_info('查看近几天的原神猜语音排行榜', '!!猜语音排行榜 [天数]', [CommandGroups.GAME])
     @bot.my_command('voice_rank', aliases=['排行榜', '猜语音排行榜'])
     async def voice_rank(msg: Message, days: int = 7):
         await msg.reply((await get_rank(msg.ctx.channel.id, days)).build())
 
-    @bot.command_info('更新原神语音资源', '!!更新原神语音资源')
+    @bot.command_info('更新原神语音资源', '!!更新原神语音资源', [CommandGroups.GAME])
     @bot.admin_command('update_voice', aliases=['更新原神语音资源'])
     async def update_voice(msg: Message):
         await msg.ctx.channel.send('开始更新原神语音资源，请稍等...')

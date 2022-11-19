@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from khl import Message, MessageTypes
 
 from .handle import handle_ssbq
+from ...api.interface import CommandGroups
 from ...database.models.cookie import PrivateCookie
 from ...database.models.player_info import Player
 
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('查看原神实时便笺(树脂情况)', '!!实时便笺 [UID]')
+    @bot.command_info('查看原神实时便笺(树脂情况)', '!!实时便笺 [UID]', [CommandGroups.INFO])
     @bot.my_command('ssbq', aliases=['实时便笺', '实时便签', '当前树脂'])
     async def ssbq(msg: Message, uid: str = None):
         log.info('原神实时便签: 开始执行查询')

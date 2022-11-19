@@ -10,13 +10,14 @@ from threading import Thread
 from typing import List
 
 from gevent import pywsgi
-from khl import Bot, Event, EventTypes, Message, GuildUser, User
+from khl import Bot, Event, EventTypes, Message, GuildUser, User, MessageTypes
 from khl_card import Card
 
 from . import panels
 from .api.command import CommandInfoManager
 from .api.panel import registered_panel, ClickablePanel
 from .database import connect, disconnect
+from .draw_help import draw_help
 from .panels import MainPanel
 from .utils import requests
 from .utils.browser import install_browser
@@ -107,12 +108,9 @@ def main():
         if cmd is None:
             await msg.ctx.channel.send(MainPanel.get_panel().build())
         elif cmd == 'all':
-            cards = [info.make_help_card() for info in bot.command_info.info_map.values()]
-            card = Card(color='#FF74E3')
-            for c in cards:
-                card.modules += c.modules
-            print(card.build_to_json())
-            await msg.reply([card.build()])
+            img = await draw_help(bot.command_info)
+            img.save('Temp/help.png')
+            await msg.ctx.channel.send(await bot.client.create_asset('Temp/help.png'), type=MessageTypes.IMG)
         else:
             info = bot.command_info.get(name=cmd)
             if info:

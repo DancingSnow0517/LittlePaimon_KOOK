@@ -16,7 +16,7 @@ class MainPanel(ClickablePanel):
                 Header('小派蒙的帮助信息'),
                 Section(Kmarkdown('命令中的 `[ ]` 不用加进去。')),
                 Section(Kmarkdown('例: `[UID]` 只需要将这个替换为你的 `UID`。`[cookie]` 同理')),
-                Section(Kmarkdown('可以使用命令 `!!帮助 all` 来查看所有命令')),
+                Section(Kmarkdown('可以使用命令 `!!帮助 all` 来查看一图流命令列表')),
                 ActionGroup(
                     GenshinInfoPanel().get_button(ThemeTypes.INFO),
                     GachaPanel().get_button(),

@@ -38,6 +38,9 @@ class CommandInfo:
         )
         return card
 
+    def in_group(self, *group: CommandGroups) -> bool:
+        return len((set(self.command_group) & set(group))) != 0
+
 
 class CommandInfoManager:
     _info_map: Dict[str, CommandInfo]
@@ -65,6 +68,13 @@ class CommandInfoManager:
                     if name in cmd_info.cmd.lexer.triggers:
                         return cmd_info
             return None
+
+    def get_by_group(self, *group: CommandGroups) -> List[CommandInfo]:
+        rt = []
+        for cmd in self._info_map.values():
+            if cmd.in_group(*group):
+                rt.append(cmd)
+        return rt
 
     def pop(self, name: str) -> Optional[CommandInfo]:
         if name in self._info_map:

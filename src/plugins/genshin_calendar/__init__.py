@@ -4,13 +4,14 @@ from typing import TYPE_CHECKING
 from khl import Message, MessageTypes
 
 from .generate import generate_day_schedule
+from ...api.interface import CommandGroups
 
 if TYPE_CHECKING:
     from ...bot import LittlePaimon
 
 
 async def on_startup(bot: 'LittlePaimon'):
-    @bot.command_info('查看原神活动日历', '!!原神日历')
+    @bot.command_info('查看原神活动日历', '!!原神日历', [CommandGroups.CALENDAR])
     @bot.my_command('calendar', aliases=['原神日程', '活动日历', '原神日历'])
     async def calendar(msg: Message):
         im = await generate_day_schedule('cn')
