@@ -108,6 +108,7 @@ async def on_startup(bot: 'LittlePaimon'):
         result = await init_map()
         await msg.reply(result)
 
+    @bot.command_info(desc='查看尘歌壶摹本所需要的材料总览', usage='!!尘歌壶材料 [摹本ID]')
     @bot.my_command('pot_material', aliases=['摹本材料', '尘歌壶材料', '尘歌壶摹本材料'])
     async def pot_material(msg: Message, share_id: str):
         if not share_id.isdigit() or len(share_id) != 10:
