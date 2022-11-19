@@ -35,5 +35,8 @@ async def on_startup(bot: 'LittlePaimon'):
 
         for ck in cookies:
             img = await handle_ssbq(Player(user_id=ck.user_id, uid=ck.uid))
+            if isinstance(img, str):
+                await msg.ctx.channel.send(img)
+                return
             img.save('Temp/ssbq.png')
             await msg.ctx.channel.send(await bot.client.create_asset('Temp/ssbq.png'), type=MessageTypes.IMG)

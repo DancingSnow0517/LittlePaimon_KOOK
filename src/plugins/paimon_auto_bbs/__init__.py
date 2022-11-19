@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING
 
-from khl import Message
+from khl import Message, MessageTypes
 
 from .coin_handle import mhy_bbs_coin
 from .sign_handle import mhy_bbs_sign, init_reward_list
@@ -36,7 +36,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 if ck.user_id != msg.author.id:
                     await msg.reply(f'UID: {ck.uid} 不属于你')
                     cookies.remove(ck)
-        await msg.ctx.channel.send('米游社原神签到不维护，不保证成功！')
+        await msg.ctx.channel.send('米游社签到 **不再** 维护，不保证成功！', type=MessageTypes.KMD)
         for ck in cookies:
             if f'{ck.user_id}-{ck.uid}' in signing_list:
                 await msg.reply('你已经在执行签到任务中，请勿重复发送')
@@ -69,7 +69,7 @@ async def on_startup(bot: 'LittlePaimon'):
             if f'{ck.user_id}-{ck.uid}' in coin_getting_list:
                 await msg.reply('你已经在执行米游币获取任务中，请勿重复发送')
             else:
-                await msg.reply(f'开始为UID **{ck.uid}** 执行米游币获取，请稍等...')
+                await msg.reply(f'开始为UID **{ck.uid}** 执行米游币获取，请稍等...\n可能需要花费 3-5 分钟完成')
                 log.info(f'米游币自动获取: user_id: {ck.user_id} uid: {ck.uid} 执行签到')
                 coin_getting_list.append(f'{ck.user_id}-{ck.uid}')
                 result = await mhy_bbs_coin(ck.user_id, ck.uid)

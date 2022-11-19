@@ -5,11 +5,10 @@ from typing import TYPE_CHECKING
 from khl import Message
 from khl.command.exception import Exceptions
 from khl_card import CardMessage, Card
-from khl_card.modules import Section, Context
 from khl_card.accessory import Kmarkdown, Button, PlainText, Paragraph
+from khl_card.modules import Section, Context
 
 from ..database.models.cookie import LastQuery, PrivateCookie
-from ..utils import requests
 from ..utils.config import config
 from ..utils.genshin_api import get_bind_game_info, get_stoken_by_cookie
 from ..utils.message_util import text_avatar, on_exception
