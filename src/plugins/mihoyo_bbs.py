@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 from khl import Message, MessageTypes
 
-from ...utils.browser import screenshot
+from ..utils.browser import screenshot
 
 if TYPE_CHECKING:
-    from ...bot import LittlePaimon
+    from ..bot import LittlePaimon
 
 log = logging.getLogger(__name__)
 
