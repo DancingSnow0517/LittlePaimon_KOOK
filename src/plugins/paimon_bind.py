@@ -29,8 +29,7 @@ async def on_startup(bot: 'LittlePaimon'):
             cm = CardMessage(Card(
                 Section(Kmarkdown('**使用方法：`!!ysb 你的米游社cookie`**')),
                 Section(Kmarkdown('也可以使用网页来绑定（如果功能开启了）'),
-                        accessory=Button(PlainText('访问'), value=f'http://{config.public_ip}:{config.web_app_port}',
-                                         click='link')),
+                        accessory=Button(PlainText('访问'), value=f'{config.public_ip}', click='link')),
                 Context(Kmarkdown(f'你的用户id：{msg.author.id}'))
             ))
             await msg.reply(cm.build())
