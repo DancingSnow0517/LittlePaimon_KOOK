@@ -114,7 +114,7 @@ async def on_startup(bot: 'LittlePaimon'):
                 log.info(f'云原神自动签到: UID{uid.uid} 发生错误 {e}')
 
     @bot.task.add_interval(minutes=30, timezone='Asia/Shanghai')
-    async def check():
+    async def check_resin():
         for user in await DailyNoteSub.all():
             last_remind_time = user.last_remind_time
             difference = datetime.datetime.now() - last_remind_time.replace(tzinfo=None)
@@ -124,6 +124,10 @@ async def on_startup(bot: 'LittlePaimon'):
             if isinstance(data, str):
                 log.info(f'原神实时便签: ➤ 用户 {user.user_id} UID {user.uid} 获取数据失败, {data}')
                 continue
+            elif data['retcode'] == 1034:
+                log.info(
+                    f'原神实时便签: ➤ 用户 {user.user_id} UID {user.uid}, 获取数据失败，状态码为1034，疑似验证码')
+                continue
             elif data['retcode'] != 0:
                 log.info(
                     f'原神实时便签: ➤ 用户 {user.user_id} UID {user.uid}, 获取数据失败，code为 {data["retcode"]}， msg为 {data["message"]}')
@@ -132,22 +136,24 @@ async def on_startup(bot: 'LittlePaimon'):
                 log.info(f'原神实时便签: ➤ 用户 {user.user_id} UID {user.uid}, 获取数据成功')
                 if data['data']['current_resin'] >= 140:
                     try:
-                        img = await draw_daily_note_card(data, user.uid)
-                        log.info(f'原神实时便签: ➤➤ 用户 {user.user_id} UID {user.uid}, 绘制图片成功')
+                        img = await draw_daily_note_card(data['data'], user.uid)
                         img.save('Temp/ssbq.png')
-
                         url = await bot.client.create_asset('Temp/ssbq.png')
+                        log.info(f'原神实时便签: ➤➤ 用户 {user.user_id} UID {user.uid}, 绘制图片成功')
                     except Exception as e:
                         log.info(f'原神实时便签: ➤➤ 用户 {user.user_id} UID {user.uid}, 绘制图片失败，{e}')
                         continue
                     u = await bot.client.fetch_user(user.user_id)
-                    if data['data']['current_resin'] >= data['data']['max_resin']:
-                        await u.send('树脂溢出了~')
-                    else:
-                        await u.send('树脂快要溢出了~')
-                    await u.send(url, type=MessageTypes.IMG)
-                    user.last_remind_time = datetime.datetime.now()
-                    await user.save()
+                    try:
+                        if data['data']['current_resin'] >= data['data']['max_resin']:
+                            await u.send('树脂溢出了~')
+                        else:
+                            await u.send('树脂快要溢出了~')
+                        await u.send(url, type=MessageTypes.IMG)
+                        user.last_remind_time = datetime.datetime.now()
+                        await user.save()
+                    except Exception:
+                        log.warning(f'向用户 {user.user_id} 发送私信失败')
 
 
 async def gen_sub_card(user_id: str):
