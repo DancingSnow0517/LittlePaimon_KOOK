@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from khl import Message, MessageTypes
 
 from .data_source import get_gacha_log_data, get_gacha_log_img, gacha_log_to_UIGF
+from ...api.interface import CommandGroups
 from ...database.models.cookie import PrivateCookie
 
 if TYPE_CHECKING:
@@ -16,6 +17,7 @@ running_show = []
 
 
 async def on_startup(bot: 'LittlePaimon'):
+    @bot.command_info('通过stoken更新原神抽卡记录', '!!更新抽卡记录 [UID]', command_group=[CommandGroups.GACHA_LOG])
     @bot.my_command('update_log', aliases=['更新抽卡记录', '抽卡记录更新', '获取抽卡记录'])
     async def update_log(msg: Message, uid: str = None):
         if uid is None:
@@ -39,6 +41,7 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply(f'更新抽卡记录时出现错误：{e}')
         running_update.remove(f'{ck.user_id}-{ck.uid}')
 
+    @bot.command_info('查看你的抽卡记录分析', '!!查看抽卡记录 [UID]', command_group=[CommandGroups.GACHA_LOG])
     @bot.my_command('show_log', aliases=['查看抽卡记录', '抽卡记录', '查询抽卡记录'])
     async def show_log(msg: Message, uid: str = None):
         if uid is None:
@@ -66,6 +69,7 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply(f'绘制抽卡记录分析时出现错误：{e}')
         running_show.remove(f'{ck.user_id}-{ck.uid}')
 
+    @bot.command_info('导出符合UIGF标准的抽卡记录json文件', '!!导出抽卡记录 [UID]')
     @bot.my_command('export_log', aliases=['导出抽卡记录', '抽卡记录导出'])
     async def export_log(msg: Message, uid: str = None):
         if uid is None:
