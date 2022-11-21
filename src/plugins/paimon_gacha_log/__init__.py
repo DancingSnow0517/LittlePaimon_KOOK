@@ -69,7 +69,7 @@ async def on_startup(bot: 'LittlePaimon'):
             await msg.reply(f'绘制抽卡记录分析时出现错误：{e}')
         running_show.remove(f'{ck.user_id}-{ck.uid}')
 
-    @bot.command_info('导出符合UIGF标准的抽卡记录json文件', '!!导出抽卡记录 [UID]')
+    @bot.command_info('导出符合UIGF标准的抽卡记录json文件', '!!导出抽卡记录 [UID]', command_group=[CommandGroups.GACHA_LOG])
     @bot.my_command('export_log', aliases=['导出抽卡记录', '抽卡记录导出'])
     async def export_log(msg: Message, uid: str = None):
         if uid is None:
