@@ -51,7 +51,7 @@ async def on_startup(bot: 'LittlePaimon'):
 
     # noinspection PyShadowingBuiltins
     @bot.command_info('查看模拟抽卡记录', '!!模拟抽卡记录 [角色|武器]', [CommandGroups.GACHA])
-    @bot.my_command('show_log', aliases=['模拟抽卡记录'])
+    @bot.my_command('show_sim_log', aliases=['模拟抽卡记录'])
     async def show_log(msg: Message, type: str = None):
         user_info = load_user_data(msg.author.id)
         if user_info['抽卡数据']['抽卡总数'] == 0:
