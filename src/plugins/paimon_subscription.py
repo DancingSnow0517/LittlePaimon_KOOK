@@ -28,10 +28,12 @@ async def on_startup(bot: 'LittlePaimon'):
     @bot.my_command('sub', aliases=['订阅信息', '订阅'])
     async def sub(msg: Message):
         channel = msg.ctx.channel
+        m = await channel.send(CardMessage(Card(Section(Kmarkdown('订阅信息\n如果你能看到次消息，说明此面板过期了或是不是你的订阅信息')))).build())
+        msg_id = m['msg_id']
         if isinstance(channel, PublicTextChannel):
-            await channel.send((await gen_sub_card(msg.author.id)).build(), temp_target_id=msg.author.id)
+            await update_message((await gen_sub_card(msg.author.id)).build(), msg_id, msg.author.id, bot.client.gate)
         else:
-            await channel.send((await gen_sub_card(msg.author.id)).build())
+            await update_private_message((await gen_sub_card(msg.author.id)).build(), msg_id, bot.client.gate)
 
     @bot.on_event(EventTypes.MESSAGE_BTN_CLICK)
     async def on_btn_click(_: 'LittlePaimon', event: Event):
