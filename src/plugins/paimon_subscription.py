@@ -3,7 +3,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from khl import Message, EventTypes, Event, GuildUser, User, MessageTypes
+from khl import Message, EventTypes, Event, GuildUser, User, MessageTypes, ChannelTypes, PublicTextChannel
 from khl_card import CardMessage, Card, ThemeTypes
 from khl_card.accessory import PlainText, Button, Kmarkdown
 from khl_card.modules import Section, Header, ActionGroup
@@ -27,7 +27,11 @@ async def on_startup(bot: 'LittlePaimon'):
     @bot.command_info('显示你的所有订阅信息', '!!订阅信息', [CommandGroups.SUBSCRIPTION])
     @bot.my_command('sub', aliases=['订阅信息', '订阅'])
     async def sub(msg: Message):
-        await msg.reply((await gen_sub_card(msg.author.id)).build(), temp_target_id=msg.author.id)
+        channel = msg.ctx.channel
+        if isinstance(channel, PublicTextChannel):
+            await channel.send((await gen_sub_card(msg.author.id)).build(), temp_target_id=msg.author.id)
+        else:
+            await channel.send((await gen_sub_card(msg.author.id)).build())
 
     @bot.on_event(EventTypes.MESSAGE_BTN_CLICK)
     async def on_btn_click(_: 'LittlePaimon', event: Event):
