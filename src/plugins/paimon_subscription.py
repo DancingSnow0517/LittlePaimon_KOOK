@@ -27,7 +27,7 @@ async def on_startup(bot: 'LittlePaimon'):
     @bot.command_info('显示你的所有订阅信息', '!!订阅信息', [CommandGroups.SUBSCRIPTION])
     @bot.my_command('sub', aliases=['订阅信息', '订阅'])
     async def sub(msg: Message):
-        await msg.reply((await gen_sub_card(msg.author.id)).build())
+        await msg.reply((await gen_sub_card(msg.author.id)).build(), temp_target_id=msg.author.id)
 
     @bot.on_event(EventTypes.MESSAGE_BTN_CLICK)
     async def on_btn_click(_: 'LittlePaimon', event: Event):
