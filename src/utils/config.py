@@ -16,6 +16,7 @@ class Config(BaseModel):
     admin: List[str]
     public_ip: str
     botmarket_uuid: str
+    github_proxy: str = 'https://ghproxy.com/'
 
     # noinspection PyTypeChecker
     @classmethod

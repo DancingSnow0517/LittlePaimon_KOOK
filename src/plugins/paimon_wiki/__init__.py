@@ -12,6 +12,7 @@ from .draw_map import init_map, draw_map, get_full_map
 from .serenitea_pot.draw import draw_pot_materials, url_data, FURNITURE_DATA_PATH
 from ...api.interface import CommandGroups
 from ...utils.alias import get_match_alias
+from ...utils.config import config
 from ...utils.files import save_json
 from ...utils.path import RESOURCE_BASE_PATH
 
@@ -157,7 +158,8 @@ async def on_startup(bot: 'LittlePaimon'):
             name = r_name1 or r_name2
             if '武器' in r_type:
                 type = '武器'
-                img_url = 'https://static.cherishmoon.fun/LittlePaimon/WeaponMaps/{}.jpg'
+                # img_url = 'https://static.cherishmoon.fun/LittlePaimon/WeaponMaps/{}.jpg'
+                img_url = '{}https://raw.githubusercontent.com/Nwflower/genshin-atlas/master/weapon/{}.png'
             elif '圣遗物' in r_type:
                 type = '圣遗物'
                 img_url = 'https://static.cherishmoon.fun/LittlePaimon/ArtifactMaps/{}.jpg'
@@ -169,7 +171,8 @@ async def on_startup(bot: 'LittlePaimon'):
                 img_url = 'https://static.cherishmoon.fun/LittlePaimon/XFGuide/{}.jpg'
             elif r_type == '角色材料':
                 type = '角色'
-                img_url = 'https://static.cherishmoon.fun/LittlePaimon/RoleMaterials/{}.jpg'
+                # img_url = 'https://static.cherishmoon.fun/LittlePaimon/RoleMaterials/{}.jpg'
+                img_url = '{}https://raw.githubusercontent.com/Nwflower/genshin-atlas/master/material%20for%20role/{}.png'
             elif r_type == '收益曲线':
                 type = '角色'
                 img_url = 'https://static.cherishmoon.fun/LittlePaimon/blue/{}.jpg'
@@ -183,12 +186,17 @@ async def on_startup(bot: 'LittlePaimon'):
                     isinstance(match_alias, list) and len(match_alias) == 1) else match_alias if isinstance(
                 match_alias, str) else None
             if true_name:
+                if img_url.count('{}') > 1:
+                    url = img_url.format(config.github_proxy, true_name)
+                else:
+                    url = img_url.format(true_name)
                 try:
                     await msg.reply([Card(
-                        Container(Image(img_url.format(true_name))),
+                        Container(Image(url)),
                         theme=ThemeTypes.NONE
                     ).build()])
-                except:
+                except Exception as e:
+                    print(e)
                     await msg.reply(f'没有找到{name}的图鉴')
             elif match_alias:
                 print(match_alias)

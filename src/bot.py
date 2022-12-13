@@ -157,18 +157,18 @@ def get_plugins(package='.') -> List[str]:
 
 
 async def check_resource():
-    res_path = Path() / 'resources' / 'LittlePaimon'
+    res_path = Path() / 'resources'
     log.info('正在检查资源完整性...')
-    resource_list = (await requests.get('http://img.genshin.cherishmoon.fun/resources/resources_list')).json()
+    resource_list = (await requests.get(f'{config.github_proxy}https://raw.githubusercontent.com/CMHopeSunshine/LittlePaimonRes/main/resources_list.json')).json()
     for resource in resource_list:
-        file_path = res_path.parent / resource['path']
+        file_path = res_path / resource['path']
         if file_path.exists():
             if not resource['lock'] or hashlib.md5(file_path.read_bytes()).hexdigest() == resource['hash']:
                 continue
             else:
                 file_path.unlink()
         try:
-            await requests.download(f'http://img.genshin.cherishmoon.fun/resources/{resource["path"]}', file_path)
+            await requests.download(url=f'{config.github_proxy}https://raw.githubusercontent.com/CMHopeSunshine/LittlePaimonRes/main/{resource["path"]}', save_path=file_path)
             await asyncio.sleep(0.5)
         except Exception:
             log.warning(f'下载 {resource["path"].split("/")[-1]} 失败')
