@@ -204,7 +204,7 @@ class PaimonBindPanel(ClickablePanel):
             Header('原神绑定相关命令'),
             Section(Kmarkdown('**原神绑定**\n用法: !!原神绑定 [cookie]')),
             Section(Kmarkdown('也可以使用网页来绑定（如果功能开启了）'),
-                    accessory=Button(PlainText('访问'), value=f'http://{config.public_ip}:{config.web_app_port}',
+                    accessory=Button(PlainText('访问'), value=f'{config.public_ip}',
                                      click='link')),
             Divider(),
             Section(Kmarkdown('**查询绑定**\n用法: !!查询绑定')),

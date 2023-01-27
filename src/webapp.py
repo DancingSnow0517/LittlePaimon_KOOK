@@ -29,7 +29,7 @@ def bind_cookie_page():
     put_markdown('也可以使用 `!!原神绑定` 命令来查看你的`用户id`')
     data = input_group('绑定Cookie', [
         input('KOOK 用户id', name='user_id', required=True, validate=is_user_id, placeholder='KOOK 用户id'),
-        textarea('米游社Cookie', name='cookie', required=True, validate=is_cookie, placeholder='Cookie'),
+        textarea('米游社Cookie', name='cookie', required=True, placeholder='Cookie'),
         checkbox(name='confirm', options=['我已知晓Cookie的重要性，确认绑定'], validate=is_confirm)
     ])
     result = loop.run_until_complete(bind_cookie(data))
